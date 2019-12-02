@@ -42,9 +42,10 @@ fn part1(input: &[usize]) -> usize {
 
 #[aoc(day2, part2)]
 fn part2(input: &[usize]) -> usize {
+    let mut program = vec![0; input.len()];
     for noun in 0..=99 {
         for verb in 0..=99 {
-            let mut program = input.to_vec();
+            program.copy_from_slice(input);
             let num = run_program(&mut program, noun, verb);
             if num != 19690720 { continue; }
             return 100 * noun + verb;
