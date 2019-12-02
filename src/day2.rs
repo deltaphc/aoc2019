@@ -4,7 +4,7 @@ use aoc_runner_derive::{aoc, aoc_generator};
 fn day2_gen(input: &str) -> Vec<usize> {
     input
         .split(',')
-        .flat_map(|num| num.parse::<usize>().ok())
+        .flat_map(|num| num.parse::<usize>())
         .collect()
 }
 

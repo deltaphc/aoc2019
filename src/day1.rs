@@ -4,7 +4,7 @@ use aoc_runner_derive::{aoc};
 fn part1(input: &str) -> i32 {
     input
         .lines()
-        .filter_map(|s| s.parse::<i32>().ok())
+        .flat_map(|s| s.parse::<i32>())
         .map(|mass| mass / 3 - 2)
         .sum()
 }
@@ -13,7 +13,7 @@ fn part1(input: &str) -> i32 {
 fn part2(input: &str) -> i32 {
     input
         .lines()
-        .filter_map(|s| s.parse::<i32>().ok())
+        .flat_map(|s| s.parse::<i32>())
         .map(|mass| {
             let mut running_mass = mass / 3 - 2;
             let mut total_mass = 0;
