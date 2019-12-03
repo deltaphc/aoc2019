@@ -16,6 +16,17 @@ enum GridCell {
     Intersection,
 }
 
+fn process_cell(wire_grid: &mut HashMap<(i32, i32), GridCell>, x: i32, y: i32, current_wire_idx: usize) {
+    wire_grid
+        .entry((x, y))
+        .and_modify(|cell| {
+            if let GridCell::OccupiedBy(idx) = cell {
+                if *idx != current_wire_idx { *cell = GridCell::Intersection; }
+            }
+        })
+        .or_insert(GridCell::OccupiedBy(current_wire_idx));
+}
+
 #[aoc(day3, part1)]
 fn part1(input: &str) -> i32 {
     let wires: Vec<Vec<WireInstruction>> = input
@@ -47,53 +58,25 @@ fn part1(input: &str) -> i32 {
             match instr {
                 WireInstruction::Up(amt) => {
                     for y_step in y..=(y + amt) {
-                        wire_grid
-                            .entry((x, y_step))
-                            .and_modify(|cell| {
-                                if let GridCell::OccupiedBy(idx) = cell {
-                                    if *idx != wire_idx { *cell = GridCell::Intersection; }
-                                }
-                            })
-                            .or_insert(GridCell::OccupiedBy(wire_idx));
+                        process_cell(&mut wire_grid, x, y_step, wire_idx);
                     }
                     y += amt;
                 },
                 WireInstruction::Down(amt) => {
                     for y_step in ((y - amt)..=y).rev() {
-                        wire_grid
-                            .entry((x, y_step))
-                            .and_modify(|cell| {
-                                if let GridCell::OccupiedBy(idx) = cell {
-                                    if *idx != wire_idx { *cell = GridCell::Intersection; }
-                                }
-                            })
-                            .or_insert(GridCell::OccupiedBy(wire_idx));
+                        process_cell(&mut wire_grid, x, y_step, wire_idx);
                     }
                     y -= amt;
                 },
                 WireInstruction::Left(amt) => {
                     for x_step in ((x - amt)..=x).rev() {
-                        wire_grid
-                            .entry((x_step, y))
-                            .and_modify(|cell| {
-                                if let GridCell::OccupiedBy(idx) = cell {
-                                    if *idx != wire_idx { *cell = GridCell::Intersection; }
-                                }
-                            })
-                            .or_insert(GridCell::OccupiedBy(wire_idx));
+                        process_cell(&mut wire_grid, x_step, y, wire_idx);
                     }
                     x -= amt;
                 },
                 WireInstruction::Right(amt) => {
                     for x_step in x..=(x + amt) {
-                        wire_grid
-                            .entry((x_step, y))
-                            .and_modify(|cell| {
-                                if let GridCell::OccupiedBy(idx) = cell {
-                                    if *idx != wire_idx { *cell = GridCell::Intersection; }
-                                }
-                            })
-                            .or_insert(GridCell::OccupiedBy(wire_idx));
+                        process_cell(&mut wire_grid, x_step, y, wire_idx);
                     }
                     x += amt;
                 },
