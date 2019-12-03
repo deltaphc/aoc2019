@@ -82,6 +82,7 @@ fn part1(input: &str) -> i32 {
                 },
             }
         }
+        x = 0; y = 0;
     }
 
     let mut closest_distance = i32::max_value();
