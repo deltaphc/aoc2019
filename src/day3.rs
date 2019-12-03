@@ -59,7 +59,7 @@ fn part1(input: &str) -> i32 {
                     y += amt;
                 },
                 WireInstruction::Down(amt) => {
-                    for y_step in y..=(y - amt) {
+                    for y_step in ((y - amt)..=y).rev() {
                         wire_grid
                             .entry((x, y_step))
                             .and_modify(|cell| {
@@ -72,7 +72,7 @@ fn part1(input: &str) -> i32 {
                     y -= amt;
                 },
                 WireInstruction::Left(amt) => {
-                    for x_step in x..=(x - amt) {
+                    for x_step in ((x - amt)..=x).rev() {
                         wire_grid
                             .entry((x_step, y))
                             .and_modify(|cell| {
