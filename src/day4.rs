@@ -9,7 +9,6 @@ fn part1(input: &str) -> usize {
     (lower..=upper)
         .filter(|&num| {
             let num_str = num.to_string();
-            let mut prev_char = ' ';
             let mut double_digit = false;
             let mut never_decrease = true;
             for i in 1..num_str.len() {
