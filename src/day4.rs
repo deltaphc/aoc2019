@@ -1,5 +1,7 @@
 use aoc_runner_derive::{aoc, aoc_generator};
 
+const POW10: [u32; 6] = [1, 10, 100, 1000, 10000, 100000];
+
 #[aoc_generator(day4)]
 fn day4_gen(input: &str) -> (u32, u32) {
     (
@@ -15,15 +17,14 @@ fn part1(&(lower, upper): &(u32, u32)) -> usize {
             let mut double_digit = false;
             let mut never_decrease = true;
             for i in 1..6 { // i is indexing digits from left to right
-                let digit: u32 = (num / 10_u32.pow(5 - i)) % 10;
-                let prev_digit: u32 = (num / 10_u32.pow(5 - (i - 1))) % 10;
+                let digit: u32 = (num / POW10[5 - i]) % 10;
+                let prev_digit: u32 = (num / POW10[5 - (i - 1)]) % 10;
                 if digit == prev_digit {
                     double_digit = true;
                 }
                 if digit < prev_digit {
                     never_decrease = false;
-                    // Adding a break here hurts performance in part 1, but improves it in part 2... for some reason
-                    // break;
+                    break;
                 }
             }
             double_digit && never_decrease
@@ -39,8 +40,8 @@ fn part2(&(lower, upper): &(u32, u32)) -> usize {
             let mut never_decrease = true;
             let mut num_matches = 0;
             for i in 1..6 { // i is indexing digits from left to right
-                let digit: u32 = (num / 10_u32.pow(5 - i)) % 10;
-                let prev_digit: u32 = (num / 10_u32.pow(5 - (i - 1))) % 10;
+                let digit: u32 = (num / POW10[5 - i]) % 10;
+                let prev_digit: u32 = (num / POW10[5 - (i - 1)]) % 10;
                 if digit == prev_digit {
                     num_matches += 1;
                 }
