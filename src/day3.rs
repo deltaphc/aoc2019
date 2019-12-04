@@ -89,6 +89,8 @@ fn process_cell(wire_grid: &mut HashMap<(i32, i32), GridCell>, x: i32, y: i32, c
             match cell {
                 GridCell::OccupiedBy { wire_idx, at_step } => {
                     if *wire_idx != current_wire_idx { // By this point we're on the second wire
+                        // We don't use wire_steps[0] here because it would contain the *total* steps
+                        // for the first wire, but we only want the steps up to this point
                         *cell = GridCell::Intersection([*at_step, wire_steps[1]]);
                     }
                 },
