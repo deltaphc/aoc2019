@@ -1,6 +1,8 @@
 use aoc_runner_derive::{aoc, aoc_generator};
 use std::collections::HashMap;
 
+type WireGridMap = HashMap<(i32, i32), GridCell>;
+
 #[derive(Debug, Copy, Clone)]
 enum WireInstruction {
     Up(i32),
@@ -17,7 +19,7 @@ enum GridCell {
 }
 
 #[aoc_generator(day3)]
-fn day3_gen(input: &str) -> HashMap<(i32, i32), GridCell> {
+fn day3_gen(input: &str) -> WireGridMap {
     let wires: Vec<Vec<WireInstruction>> = input
         .lines()
         .map(|line| {
@@ -37,7 +39,7 @@ fn day3_gen(input: &str) -> HashMap<(i32, i32), GridCell> {
         })
         .collect();
     
-    let mut wire_grid: HashMap<(i32, i32), GridCell> = HashMap::new();
+    let mut wire_grid: WireGridMap = WireGridMap::new();
     wire_grid.insert((0, 0), GridCell::Origin);
 
     let mut x: i32 = 0;
@@ -82,7 +84,7 @@ fn day3_gen(input: &str) -> HashMap<(i32, i32), GridCell> {
     wire_grid
 }
 
-fn process_cell(wire_grid: &mut HashMap<(i32, i32), GridCell>, x: i32, y: i32, current_wire_idx: usize, wire_steps: [u32; 2]) {
+fn process_cell(wire_grid: &mut WireGridMap, x: i32, y: i32, current_wire_idx: usize, wire_steps: [u32; 2]) {
     wire_grid
         .entry((x, y))
         .and_modify(|cell| {
@@ -101,12 +103,13 @@ fn process_cell(wire_grid: &mut HashMap<(i32, i32), GridCell>, x: i32, y: i32, c
 }
 
 #[aoc(day3, part1)]
-fn part1(input: &HashMap<(i32, i32), GridCell>) -> i32 {
+fn part1(input: &WireGridMap) -> i32 {
     let mut closest_distance = i32::max_value();
     for ((x, y), cell) in input {
         if let GridCell::Intersection(_) = cell {
-            if x.abs() + y.abs() < closest_distance {
-                closest_distance = x.abs() + y.abs();
+            let manhattan_dist = x.abs() + y.abs();
+            if manhattan_dist < closest_distance {
+                closest_distance = manhattan_dist;
             }
         }
     }
@@ -114,7 +117,7 @@ fn part1(input: &HashMap<(i32, i32), GridCell>) -> i32 {
 }
 
 #[aoc(day3, part2)]
-fn part2(input: &HashMap<(i32, i32), GridCell>) -> u32 {
+fn part2(input: &WireGridMap) -> u32 {
     let mut lowest_step_sum = u32::max_value();
     for ((_, _), cell) in input {
         if let GridCell::Intersection(steps) = cell {
