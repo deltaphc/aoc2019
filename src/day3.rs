@@ -12,23 +12,12 @@ enum WireInstruction {
 #[derive(Debug, Copy, Clone, PartialEq)]
 enum GridCell {
     Origin,
-    OccupiedBy(usize),
-    Intersection,
+    OccupiedBy { wire_idx: usize, at_step: u32 },
+    Intersection([u32; 2]),
 }
 
-fn process_cell(wire_grid: &mut HashMap<(i32, i32), GridCell>, x: i32, y: i32, current_wire_idx: usize) {
-    wire_grid
-        .entry((x, y))
-        .and_modify(|cell| {
-            if let GridCell::OccupiedBy(idx) = cell {
-                if *idx != current_wire_idx { *cell = GridCell::Intersection; }
-            }
-        })
-        .or_insert(GridCell::OccupiedBy(current_wire_idx));
-}
-
-#[aoc(day3, part1)]
-fn part1(input: &str) -> i32 {
+#[aoc_generator(day3)]
+fn day3_gen(input: &str) -> HashMap<(i32, i32), GridCell> {
     let wires: Vec<Vec<WireInstruction>> = input
         .lines()
         .map(|line| {
@@ -53,30 +42,35 @@ fn part1(input: &str) -> i32 {
 
     let mut x: i32 = 0;
     let mut y: i32 = 0;
+    let mut steps = [0_u32; 2];
     for (wire_idx, wire) in wires.iter().enumerate() {
         for instr in wire {
             match instr {
                 WireInstruction::Up(amt) => {
                     for y_step in y..=(y + amt) {
-                        process_cell(&mut wire_grid, x, y_step, wire_idx);
+                        if y_step > y { steps[wire_idx] += 1; }
+                        process_cell(&mut wire_grid, x, y_step, wire_idx, steps);
                     }
                     y += amt;
                 },
                 WireInstruction::Down(amt) => {
                     for y_step in ((y - amt)..=y).rev() {
-                        process_cell(&mut wire_grid, x, y_step, wire_idx);
+                        if y_step < y { steps[wire_idx] += 1; }
+                        process_cell(&mut wire_grid, x, y_step, wire_idx, steps);
                     }
                     y -= amt;
                 },
                 WireInstruction::Left(amt) => {
                     for x_step in ((x - amt)..=x).rev() {
-                        process_cell(&mut wire_grid, x_step, y, wire_idx);
+                        if x_step < x { steps[wire_idx] += 1; }
+                        process_cell(&mut wire_grid, x_step, y, wire_idx, steps);
                     }
                     x -= amt;
                 },
                 WireInstruction::Right(amt) => {
                     for x_step in x..=(x + amt) {
-                        process_cell(&mut wire_grid, x_step, y, wire_idx);
+                        if x_step > x { steps[wire_idx] += 1; }
+                        process_cell(&mut wire_grid, x_step, y, wire_idx, steps);
                     }
                     x += amt;
                 },
@@ -85,13 +79,48 @@ fn part1(input: &str) -> i32 {
         x = 0; y = 0;
     }
 
+    wire_grid
+}
+
+fn process_cell(wire_grid: &mut HashMap<(i32, i32), GridCell>, x: i32, y: i32, current_wire_idx: usize, wire_steps: [u32; 2]) {
+    wire_grid
+        .entry((x, y))
+        .and_modify(|cell| {
+            match cell {
+                GridCell::OccupiedBy { wire_idx, at_step } => {
+                    if *wire_idx != current_wire_idx { // By this point we're on the second wire
+                        *cell = GridCell::Intersection([*at_step, wire_steps[1]]);
+                    }
+                },
+                _ => (),
+            }
+        })
+        .or_insert(GridCell::OccupiedBy { wire_idx: current_wire_idx, at_step: wire_steps[current_wire_idx] });
+}
+
+#[aoc(day3, part1)]
+fn part1(input: &HashMap<(i32, i32), GridCell>) -> i32 {
     let mut closest_distance = i32::max_value();
-    for ((x, y), cell) in &wire_grid {
-        if let GridCell::Intersection = cell {
+    for ((x, y), cell) in input {
+        if let GridCell::Intersection(_) = cell {
             if x.abs() + y.abs() < closest_distance {
                 closest_distance = x.abs() + y.abs();
             }
         }
     }
     closest_distance
+}
+
+#[aoc(day3, part2)]
+fn part2(input: &HashMap<(i32, i32), GridCell>) -> u32 {
+    let mut lowest_step_sum = u32::max_value();
+    for ((_, _), cell) in input {
+        if let GridCell::Intersection(steps) = cell {
+            let step_sum = steps[0] + steps[1];
+            if step_sum < lowest_step_sum {
+                lowest_step_sum = step_sum;
+            }
+        }
+    }
+    lowest_step_sum
 }
