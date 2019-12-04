@@ -1,23 +1,23 @@
 use aoc_runner_derive::{aoc};
-use std::str::FromStr;
 
 #[aoc(day4, part1)]
 fn part1(input: &str) -> usize {
-    let mut split_iter = input.split('-').flat_map(|num_str| num_str.parse::<u32>());
-    let (lower, upper) = (split_iter.next().unwrap(), split_iter.next().unwrap());
+    let (lower, upper) = (
+        input[0..6].parse::<u32>().unwrap(),
+        input[7..13].parse::<u32>().unwrap()
+    );
 
     (lower..=upper)
         .filter(|&num| {
-            let num_str = num.to_string();
             let mut double_digit = false;
             let mut never_decrease = true;
-            for i in 1..num_str.len() {
-                let ch = char::from_str(&num_str[i..=i]).unwrap();
-                let prev_ch = char::from_str(&num_str[(i - 1)..=(i - 1)]).unwrap();
-                if ch == prev_ch {
+            for i in 1..6 { // i is indexing digits from left to right
+                let digit: u32 = (num / 10_u32.pow(5 - i)) % 10;
+                let prev_digit: u32 = (num / 10_u32.pow(5 - (i - 1))) % 10;
+                if digit == prev_digit {
                     double_digit = true;
                 }
-                if ch < prev_ch {
+                if digit < prev_digit {
                     never_decrease = false;
                 }
             }
@@ -28,19 +28,20 @@ fn part1(input: &str) -> usize {
 
 #[aoc(day4, part2)]
 fn part2(input: &str) -> usize {
-    let mut split_iter = input.split('-').flat_map(|num_str| num_str.parse::<u32>());
-    let (lower, upper) = (split_iter.next().unwrap(), split_iter.next().unwrap());
+    let (lower, upper) = (
+        input[0..6].parse::<u32>().unwrap(),
+        input[7..13].parse::<u32>().unwrap()
+    );
 
     (lower..=upper)
         .filter(|&num| {
-            let num_str = num.to_string();
             let mut double_digit = false;
             let mut never_decrease = true;
             let mut num_matches = 0;
-            for i in 1..num_str.len() {
-                let ch = char::from_str(&num_str[i..=i]).unwrap();
-                let prev_ch = char::from_str(&num_str[(i - 1)..=(i - 1)]).unwrap();
-                if ch == prev_ch {
+            for i in 1..6 { // i is indexing digits from left to right
+                let digit: u32 = (num / 10_u32.pow(5 - i)) % 10;
+                let prev_digit: u32 = (num / 10_u32.pow(5 - (i - 1))) % 10;
+                if digit == prev_digit {
                     num_matches += 1;
                 }
                 else {
@@ -49,7 +50,7 @@ fn part2(input: &str) -> usize {
                     }
                     num_matches = 0;
                 }
-                if ch < prev_ch {
+                if digit < prev_digit {
                     never_decrease = false;
                 }
             }
