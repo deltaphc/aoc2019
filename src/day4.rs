@@ -1,12 +1,15 @@
-use aoc_runner_derive::{aoc};
+use aoc_runner_derive::{aoc, aoc_generator};
 
-#[aoc(day4, part1)]
-fn part1(input: &str) -> usize {
-    let (lower, upper) = (
+#[aoc_generator(day4)]
+fn day4_gen(input: &str) -> (u32, u32) {
+    (
         input[0..6].parse::<u32>().unwrap(),
         input[7..13].parse::<u32>().unwrap()
-    );
+    )
+}
 
+#[aoc(day4, part1)]
+fn part1(&(lower, upper): &(u32, u32)) -> usize {
     (lower..=upper)
         .filter(|&num| {
             let mut double_digit = false;
@@ -19,6 +22,8 @@ fn part1(input: &str) -> usize {
                 }
                 if digit < prev_digit {
                     never_decrease = false;
+                    // Adding a break here hurts performance in part 1, but improves it in part 2... for some reason
+                    // break;
                 }
             }
             double_digit && never_decrease
@@ -27,12 +32,7 @@ fn part1(input: &str) -> usize {
 }
 
 #[aoc(day4, part2)]
-fn part2(input: &str) -> usize {
-    let (lower, upper) = (
-        input[0..6].parse::<u32>().unwrap(),
-        input[7..13].parse::<u32>().unwrap()
-    );
-
+fn part2(&(lower, upper): &(u32, u32)) -> usize {
     (lower..=upper)
         .filter(|&num| {
             let mut double_digit = false;
@@ -52,6 +52,7 @@ fn part2(input: &str) -> usize {
                 }
                 if digit < prev_digit {
                     never_decrease = false;
+                    break;
                 }
             }
 
