@@ -1,4 +1,4 @@
-use aoc_runner_derive::{aoc, aoc_generator};
+use aoc_runner_derive::{aoc};
 use std::str::FromStr;
 
 #[aoc(day4, part1)]
@@ -44,22 +44,21 @@ fn part2(input: &str) -> usize {
                     num_matches += 1;
                 }
                 else {
-                    if num_matches > 0 {
-                        double_digit = ((num_matches + 1) % 2) == 0;
-                        if !double_digit { break; }
-                        num_matches = 0;
+                    if num_matches == 1 {
+                        double_digit = true;
                     }
+                    num_matches = 0;
                 }
                 if ch < prev_ch {
                     never_decrease = false;
                 }
             }
 
-            if num_matches > 0 {
-                double_digit = ((num_matches + 1) % 2) == 0;
+            // Accounting for leftover matches after digit loop finishes
+            if num_matches == 1 {
+                double_digit = true;
             }
             
-            if double_digit && never_decrease { print!("{} ", num); }
             double_digit && never_decrease
         })
         .count()
