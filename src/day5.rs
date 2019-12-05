@@ -175,7 +175,12 @@ fn part1(input: &[i32]) -> i32 {
     run_intcode(&mut prog, |io_op| {
         match io_op {
             IOOperation::Input => return 1,
-            IOOperation::Output(value) => { output = value; return 0; },
+            IOOperation::Output(value) => {
+                // Disabled for the sake of benchmarking
+                //println!("{}", value);
+                output = value;
+                return 0;
+            },
         }
     });
     output
@@ -188,7 +193,12 @@ fn part2(input: &[i32]) -> i32 {
     run_intcode(&mut prog, |io_op| {
         match io_op {
             IOOperation::Input => return 5,
-            IOOperation::Output(value) => { output = value; return 0; },
+            IOOperation::Output(value) => {
+                // Disabled for the sake of benchmarking
+                //println!("{}", value);
+                output = value;
+                return 0;
+            },
         }
     });
     output
