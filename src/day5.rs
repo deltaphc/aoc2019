@@ -98,14 +98,14 @@ where
         let ins = decode_instr(prog, pc);
         match ins.opcode {
             Op::Add => {
-                prog[ins.params[2] as usize] =
-                    read_value(prog, ins.params[0], ins.param_modes[0]) +
-                    read_value(prog, ins.params[1], ins.param_modes[1]);
+                let left_operand = read_value(prog, ins.params[0], ins.param_modes[0]);
+                let right_operand = read_value(prog, ins.params[1], ins.param_modes[1]);
+                prog[ins.params[2] as usize] = left_operand + right_operand;
             },
             Op::Multiply => {
-                prog[ins.params[2] as usize] =
-                    read_value(prog, ins.params[0], ins.param_modes[0]) *
-                    read_value(prog, ins.params[1], ins.param_modes[1]);
+                let left_operand = read_value(prog, ins.params[0], ins.param_modes[0]);
+                let right_operand = read_value(prog, ins.params[1], ins.param_modes[1]);
+                prog[ins.params[2] as usize] = left_operand * right_operand;
             },
             Op::Input => {
                 prog[ins.params[0] as usize] = io_handler(IOOperation::Input);
@@ -131,14 +131,14 @@ where
                 }
             },
             Op::LessThan => {
-                prog[ins.params[2] as usize] = (
-                    read_value(prog, ins.params[0], ins.param_modes[0]) <
-                    read_value(prog, ins.params[1], ins.param_modes[1])) as i32;
+                let left_operand = read_value(prog, ins.params[0], ins.param_modes[0]);
+                let right_operand = read_value(prog, ins.params[1], ins.param_modes[1]);
+                prog[ins.params[2] as usize] = (left_operand < right_operand) as i32;
             },
             Op::Equals => {
-                prog[ins.params[2] as usize] = (
-                    read_value(prog, ins.params[0], ins.param_modes[0]) ==
-                    read_value(prog, ins.params[1], ins.param_modes[1])) as i32;
+                let left_operand = read_value(prog, ins.params[0], ins.param_modes[0]);
+                let right_operand = read_value(prog, ins.params[1], ins.param_modes[1]);
+                prog[ins.params[2] as usize] = (left_operand == right_operand) as i32;
             },
             Op::Halt => halted = true,
         }
