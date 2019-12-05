@@ -54,7 +54,7 @@ pub fn decode_instr(prog: &[i32], pc: usize) -> Instruction {
         7 => (Op::LessThan, 4),
         8 => (Op::Equals, 4),
         99 => (Op::Halt, 1),
-        _ => panic!("Illegal instruction {}", instr),
+        _ => panic!("Illegal instruction {} at PC={}", instr, pc),
     };
 
     let mut params = [0_i32; 3];
@@ -143,6 +143,68 @@ where
 
         if pc_increase {
             pc += ins.length;
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn day2_input() {
+        const INPUT: &str = include_str!("../input/2019/day2.txt");
+        let mut prog: Vec<i32> = INPUT
+            .trim()
+            .split(',')
+            .flat_map(|num_str| num_str.parse::<i32>())
+            .collect();
+        
+        prog[1] = 12;
+        prog[2] = 2;
+
+        run(&mut prog, |_| { 0 });
+
+        assert_eq!(prog[0], 6327510);
+    }
+
+    #[test]
+    fn day5_input() {
+        const INPUT: &str = include_str!("../input/2019/day5.txt");
+        let default_prog = INPUT
+            .trim()
+            .split(',')
+            .flat_map(|num_str| num_str.parse::<i32>())
+            .collect::<Vec<i32>>()
+            .into_boxed_slice();
+        
+        {
+            let mut prog = default_prog.to_vec();
+            let mut output = -6969;
+            run(&mut prog, |io_op| {
+                match io_op {
+                    IOOperation::Input => return 1,
+                    IOOperation::Output(value) => {
+                        output = value;
+                        return 0;
+                    },
+                }
+            });
+            assert_eq!(output, 16434972);
+        }
+        {
+            let mut prog = default_prog.to_vec();
+            let mut output = -6969;
+            run(&mut prog, |io_op| {
+                match io_op {
+                    IOOperation::Input => return 5,
+                    IOOperation::Output(value) => {
+                        output = value;
+                        return 0;
+                    },
+                }
+            });
+            assert_eq!(output, 16694270);
         }
     }
 }
