@@ -40,10 +40,12 @@ impl From<i32> for ParamMode {
 struct Instruction {
     opcode: Op,
     param_modes: [ParamMode; 3],
+    params: [i32; 3],
     length: usize,
 }
 
-fn decode_instr(instr: i32) -> Instruction {
+fn decode_instr(prog: &[i32], pc: usize) -> Instruction {
+    let instr = prog[pc];
     let (opcode, length) = match instr % 100 { // first two digits
         1 => (Op::Add, 4),
         2 => (Op::Multiply, 4),
@@ -57,13 +59,18 @@ fn decode_instr(instr: i32) -> Instruction {
         _ => panic!("Illegal instruction {}", instr),
     };
 
+    let mut params = [0_i32; 3];
+    for i in 1..length {
+        params[i - 1] = prog[pc + i];
+    }
+
     let param_modes = [
         ParamMode::from(nth_digit(instr, 2)),
         ParamMode::from(nth_digit(instr, 3)),
         ParamMode::from(nth_digit(instr, 4)),
     ];
     
-    Instruction { opcode, param_modes, length }
+    Instruction { opcode, param_modes, params, length }
 }
 
 fn read_value(prog: &[i32], num: i32, param_mode: ParamMode) -> i32 {
@@ -88,74 +95,56 @@ where
 
     while !halted {
         let mut pc_increase = true;
-        let instruction = decode_instr(prog[pc]);
-        match instruction.opcode {
+        let ins = decode_instr(prog, pc);
+        match ins.opcode {
             Op::Add => {
-                let i1 = prog[pc + 1];
-                let i2 = prog[pc + 2];
-                let write_idx = prog[pc + 3] as usize;
-                prog[write_idx] =
-                    read_value(prog, i1, instruction.param_modes[0]) +
-                    read_value(prog, i2, instruction.param_modes[1]);
+                prog[ins.params[2] as usize] =
+                    read_value(prog, ins.params[0], ins.param_modes[0]) +
+                    read_value(prog, ins.params[1], ins.param_modes[1]);
             },
             Op::Multiply => {
-                let i1 = prog[pc + 1];
-                let i2 = prog[pc + 2];
-                let write_idx = prog[pc + 3] as usize;
-                prog[write_idx] =
-                    read_value(prog, i1, instruction.param_modes[0]) *
-                    read_value(prog, i2, instruction.param_modes[1]);
+                prog[ins.params[2] as usize] =
+                    read_value(prog, ins.params[0], ins.param_modes[0]) *
+                    read_value(prog, ins.params[1], ins.param_modes[1]);
             },
             Op::Input => {
-                let write_idx = prog[pc + 1] as usize;
-                prog[write_idx] = io_handler(IOOperation::Input);
+                prog[ins.params[0] as usize] = io_handler(IOOperation::Input);
             },
             Op::Output => {
-                let i1 = prog[pc + 1];
-                let value = read_value(prog, i1, instruction.param_modes[0]);
+                let value = read_value(prog, ins.params[0], ins.param_modes[0]);
                 io_handler(IOOperation::Output(value));
             },
             Op::JumpIfTrue => {
-                let i1 = prog[pc + 1];
-                let i2 = prog[pc + 2];
-                let value = read_value(prog, i1, instruction.param_modes[0]);
-                let dest = read_value(prog, i2, instruction.param_modes[1]);
+                let value = read_value(prog, ins.params[0], ins.param_modes[0]);
+                let dest = read_value(prog, ins.params[1], ins.param_modes[1]);
                 if value != 0 {
                     pc = dest as usize;
                     pc_increase = false;
                 }
             },
             Op::JumpIfFalse => {
-                let i1 = prog[pc + 1];
-                let i2 = prog[pc + 2];
-                let value = read_value(prog, i1, instruction.param_modes[0]);
-                let dest = read_value(prog, i2, instruction.param_modes[1]);
+                let value = read_value(prog, ins.params[0], ins.param_modes[0]);
+                let dest = read_value(prog, ins.params[1], ins.param_modes[1]);
                 if value == 0 {
                     pc = dest as usize;
                     pc_increase = false;
                 }
             },
             Op::LessThan => {
-                let i1 = prog[pc + 1];
-                let i2 = prog[pc + 2];
-                let write_idx = prog[pc + 3] as usize;
-                prog[write_idx] = (
-                    read_value(prog, i1, instruction.param_modes[0]) <
-                    read_value(prog, i2, instruction.param_modes[1])) as i32;
+                prog[ins.params[2] as usize] = (
+                    read_value(prog, ins.params[0], ins.param_modes[0]) <
+                    read_value(prog, ins.params[1], ins.param_modes[1])) as i32;
             },
             Op::Equals => {
-                let i1 = prog[pc + 1];
-                let i2 = prog[pc + 2];
-                let write_idx = prog[pc + 3] as usize;
-                prog[write_idx] = (
-                    read_value(prog, i1, instruction.param_modes[0]) ==
-                    read_value(prog, i2, instruction.param_modes[1])) as i32;
+                prog[ins.params[2] as usize] = (
+                    read_value(prog, ins.params[0], ins.param_modes[0]) ==
+                    read_value(prog, ins.params[1], ins.param_modes[1])) as i32;
             },
             Op::Halt => halted = true,
         }
 
         if pc_increase {
-            pc += instruction.length;
+            pc += ins.length;
         }
     }
 }
