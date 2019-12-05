@@ -32,19 +32,18 @@ fn part1(&(lower, upper): &(u32, u32)) -> usize {
     (lower..=upper)
         .filter(|&num| {
             let mut double_digit = false;
-            let mut never_decrease = true;
             for digit_pair in digits(num).windows(2) {
                 let (prev_digit, digit) = (digit_pair[0], digit_pair[1]);
 
+                if digit < prev_digit {
+                    return false;
+                }
+                
                 if digit == prev_digit {
                     double_digit = true;
                 }
-                if digit < prev_digit {
-                    never_decrease = false;
-                    break;
-                }
             }
-            double_digit && never_decrease
+            double_digit
         })
         .count()
 }
@@ -54,10 +53,13 @@ fn part2(&(lower, upper): &(u32, u32)) -> usize {
     (lower..=upper)
         .filter(|&num| {
             let mut double_digit = false;
-            let mut never_decrease = true;
             let mut num_matches = 0;
             for digit_pair in digits(num).windows(2) {
                 let (prev_digit, digit) = (digit_pair[0], digit_pair[1]);
+
+                if digit < prev_digit {
+                    return false;
+                }
 
                 if digit == prev_digit {
                     num_matches += 1;
@@ -68,18 +70,13 @@ fn part2(&(lower, upper): &(u32, u32)) -> usize {
                     }
                     num_matches = 0;
                 }
-                if digit < prev_digit {
-                    never_decrease = false;
-                    break;
-                }
             }
 
             // Accounting for leftover matches after digit loop finishes
             if num_matches == 1 {
                 double_digit = true;
             }
-            
-            double_digit && never_decrease
+            double_digit
         })
         .count()
 }
