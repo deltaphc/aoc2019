@@ -73,7 +73,16 @@ fn read_value(prog: &[i32], num: i32, param_mode: ParamMode) -> i32 {
     }
 }
 
-fn run_intcode(prog: &mut [i32]) {
+#[derive(Debug, Copy, Clone)]
+enum IOOperation {
+    Input,
+    Output(i32),
+}
+
+fn run_intcode<F>(prog: &mut [i32], mut io_handler: F)
+where
+    F: FnMut(IOOperation) -> i32
+{
     let mut pc = 0_usize; // Program counter
     let mut halted = false;
 
@@ -98,18 +107,13 @@ fn run_intcode(prog: &mut [i32]) {
                     read_value(prog, i2, instruction.param_modes[1]);
             },
             Op::Input => {
-                let mut input_buf = String::new();
-                std::io::stdin().read_line(&mut input_buf)
-                    .expect("Intcode input error");
-                
                 let write_idx = prog[pc + 1] as usize;
-                prog[write_idx] = input_buf.trim().parse::<i32>()
-                    .expect("Invalid user input");
+                prog[write_idx] = io_handler(IOOperation::Input);
             },
             Op::Output => {
                 let i1 = prog[pc + 1];
                 let value = read_value(prog, i1, instruction.param_modes[0]);
-                println!("{}", value);
+                io_handler(IOOperation::Output(value));
             },
             Op::JumpIfTrue => {
                 let i1 = prog[pc + 1];
@@ -167,13 +171,25 @@ fn day5_gen(input: &str) -> Vec<i32> {
 #[aoc(day5, part1)]
 fn part1(input: &[i32]) -> i32 {
     let mut prog = input.to_vec();
-    run_intcode(&mut prog);
-    -6969 //garbage value to satisfy cargo-aoc
+    let mut output = -6969;
+    run_intcode(&mut prog, |io_op| {
+        match io_op {
+            IOOperation::Input => return 1,
+            IOOperation::Output(value) => { output = value; return 0; },
+        }
+    });
+    output
 }
 
 #[aoc(day5, part2)]
 fn part2(input: &[i32]) -> i32 {
     let mut prog = input.to_vec();
-    run_intcode(&mut prog);
-    -6969 //garbage value to satisfy cargo-aoc
+    let mut output = -6969;
+    run_intcode(&mut prog, |io_op| {
+        match io_op {
+            IOOperation::Input => return 5,
+            IOOperation::Output(value) => { output = value; return 0; },
+        }
+    });
+    output
 }
