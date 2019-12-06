@@ -17,8 +17,8 @@ fn day6_gen(input: &str) -> HashMap<String, String> {
 fn part1(input: &HashMap<String, String>) -> i32 {
     let direct_orbits = input.len() as i32;
     let mut total_indirect_orbits = 0;
-    for (k, v) in input {
-        let mut indirect_orbits = -1; // we don't count the immediate next orbit since that's direct
+    for (_, v) in input {
+        let mut indirect_orbits = 0;
         let mut current_v = v;
         while let Some(next_val) = input.get(current_v) {
             indirect_orbits += 1;
