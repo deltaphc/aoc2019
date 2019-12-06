@@ -30,3 +30,40 @@ fn part1(input: &HashMap<String, String>) -> i32 {
     
     direct_orbits + total_indirect_orbits
 }
+
+#[aoc(day6, part2)]
+fn part2(input: &HashMap<String, String>) -> usize {
+    let mut you_to_com = Vec::new();
+    {
+        let mut cursor = &input["YOU"];
+        you_to_com.push(cursor);
+        while let Some(next_val) = input.get(cursor) {
+            if next_val != "COM" {
+                you_to_com.push(next_val);
+            }
+            cursor = next_val;
+        }
+    }
+
+    let mut san_to_com = Vec::new();
+    {
+        let mut cursor = &input["SAN"];
+        san_to_com.push(cursor);
+        while let Some(next_val) = input.get(cursor) {
+            if next_val != "COM" {
+                san_to_com.push(next_val);
+            }
+            cursor = next_val;
+        }
+    }
+
+    let mut orbital_transfers = 0;
+    for node in &you_to_com {
+        orbital_transfers += 1;
+        if let Some((i, _)) = san_to_com.iter().enumerate().find(|(_, item)| *item == node) {
+            orbital_transfers += i - 1;
+            break;
+        }
+    }
+    orbital_transfers
+}
