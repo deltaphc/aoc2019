@@ -153,8 +153,8 @@ mod tests {
 
     #[test]
     fn day2_input() {
-        const INPUT: &str = include_str!("../input/2019/day2.txt");
-        let mut prog: Vec<i32> = INPUT
+        let input = std::fs::read_to_string("input/2019/day2.txt").unwrap();
+        let mut prog: Vec<i32> = input
             .trim()
             .split(',')
             .flat_map(|num_str| num_str.parse::<i32>())
@@ -170,8 +170,8 @@ mod tests {
 
     #[test]
     fn day5_input() {
-        const INPUT: &str = include_str!("../input/2019/day5.txt");
-        let default_prog = INPUT
+        let input = std::fs::read_to_string("input/2019/day5.txt").unwrap();
+        let default_prog = input
             .trim()
             .split(',')
             .flat_map(|num_str| num_str.parse::<i32>())
