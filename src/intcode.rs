@@ -92,7 +92,7 @@ pub enum IOOperation {
     Output(i32),
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Default)]
 pub struct RunResult {
     pub last_pc: usize,
     pub halted: bool,
