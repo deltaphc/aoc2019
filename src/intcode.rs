@@ -24,6 +24,12 @@ pub enum ParamMode {
     Immediate,
 }
 
+impl Default for ParamMode {
+    fn default() -> ParamMode {
+        ParamMode::Position
+    }
+}
+
 impl From<i32> for ParamMode {
     fn from(num: i32) -> ParamMode {
         match num {
@@ -34,8 +40,11 @@ impl From<i32> for ParamMode {
     }
 }
 
-#[derive(Debug, Copy, Clone)]
-pub struct Param(i32, ParamMode);
+#[derive(Debug, Copy, Clone, Default)]
+pub struct Param {
+    value: i32,
+    mode: ParamMode,
+}
 
 #[derive(Debug, Copy, Clone)]
 pub struct Instruction {
@@ -59,21 +68,21 @@ pub fn decode_instr(prog: &[i32], pc: usize) -> Instruction {
         _ => panic!("Illegal instruction {} at PC={}", instr, pc),
     };
 
-    let mut params = [Param(0, ParamMode::Immediate); 3];
+    let mut params = [Param::default(); 3];
     for i in 1..length {
-        params[i - 1] = Param(
-            prog[pc + i],
-            ParamMode::from(nth_digit(instr, i + 1))
-        );
+        params[i - 1] = Param {
+            value: prog[pc + i],
+            mode: ParamMode::from(nth_digit(instr, i + 1)),
+        };
     }
     
     Instruction { opcode, params, length }
 }
 
-fn read_value(prog: &[i32], Param(num, param_mode): Param) -> i32 {
-    match param_mode {
-        ParamMode::Position => prog[num as usize],
-        ParamMode::Immediate => num,
+fn read_value(prog: &[i32], Param { value, mode }: Param) -> i32 {
+    match mode {
+        ParamMode::Position => prog[value as usize],
+        ParamMode::Immediate => value,
     }
 }
 
@@ -97,17 +106,17 @@ where
             Op::Add => {
                 let left_operand = read_value(prog, ins.params[0]);
                 let right_operand = read_value(prog, ins.params[1]);
-                let write_idx = ins.params[2].0 as usize;
+                let write_idx = ins.params[2].value as usize;
                 prog[write_idx] = left_operand + right_operand;
             },
             Op::Multiply => {
                 let left_operand = read_value(prog, ins.params[0]);
                 let right_operand = read_value(prog, ins.params[1]);
-                let write_idx = ins.params[2].0 as usize;
+                let write_idx = ins.params[2].value as usize;
                 prog[write_idx] = left_operand * right_operand;
             },
             Op::Input => {
-                let write_idx = ins.params[0].0 as usize;
+                let write_idx = ins.params[0].value as usize;
                 prog[write_idx] = io_handler(IOOperation::Input);
             },
             Op::Output => {
@@ -133,13 +142,13 @@ where
             Op::LessThan => {
                 let left_operand = read_value(prog, ins.params[0]);
                 let right_operand = read_value(prog, ins.params[1]);
-                let write_idx = ins.params[2].0 as usize;
+                let write_idx = ins.params[2].value as usize;
                 prog[write_idx] = (left_operand < right_operand) as i32;
             },
             Op::Equals => {
                 let left_operand = read_value(prog, ins.params[0]);
                 let right_operand = read_value(prog, ins.params[1]);
-                let write_idx = ins.params[2].0 as usize;
+                let write_idx = ins.params[2].value as usize;
                 prog[write_idx] = (left_operand == right_operand) as i32;
             },
             Op::Halt => halted = true,
