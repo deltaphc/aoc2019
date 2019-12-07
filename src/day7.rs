@@ -53,7 +53,7 @@ fn part1(input: &[i32]) -> i32 {
 }
 
 #[aoc(day7, part2)]
-fn part2(input: &[i32]) -> i32 { // WIP, just a copy paste right now
+fn part2(input: &[i32]) -> i32 {
     let mut highest_output = 0;
     for phases in (5..=9).permutations(5) {
         let mut output = (0, RunResult::default());
