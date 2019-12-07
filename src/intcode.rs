@@ -92,11 +92,23 @@ pub enum IOOperation {
     Output(i32),
 }
 
-pub fn run<F>(prog: &mut [i32], mut io_handler: F)
+#[derive(Debug, Copy, Clone)]
+pub struct RunResult {
+    pub last_pc: usize,
+    pub halted: bool,
+}
+
+/// Runs the given Intcode program using the provided program counter and I/O handler.
+///
+/// The `io_handler` closure should return either the input value, or a `-1` on output if execution should pause, causing the function to return.
+///
+/// Returns the status of execution.
+pub fn run<F>(prog: &mut [i32], pc: usize, io_handler: F) -> RunResult
 where
     F: FnMut(IOOperation) -> i32
 {
-    let mut pc = 0_usize; // Program counter
+    let mut pc = pc; // Program counter
+    let mut io_handler = io_handler;
     let mut halted = false;
 
     while !halted {
@@ -121,7 +133,11 @@ where
             },
             Op::Output => {
                 let value = read_value(prog, ins.params[0]);
-                io_handler(IOOperation::Output(value));
+                let continue_code = io_handler(IOOperation::Output(value));
+                if continue_code == -1 { // Pause execution
+                    pc += ins.length;
+                    break;
+                }
             },
             Op::JumpIfTrue => {
                 let value = read_value(prog, ins.params[0]);
@@ -151,12 +167,20 @@ where
                 let write_idx = ins.params[2].value as usize;
                 prog[write_idx] = (left_operand == right_operand) as i32;
             },
-            Op::Halt => halted = true,
+            Op::Halt => {
+                halted = true;
+                pc_increase = false;
+            },
         }
 
         if pc_increase {
             pc += ins.length;
         }
+    }
+    
+    RunResult {
+        last_pc: pc,
+        halted,
     }
 }
 
@@ -178,7 +202,7 @@ mod tests {
         let mut prog = read_intcode_input("input/2019/day2.txt");
         prog[1] = 12;
         prog[2] = 2;
-        run(&mut prog, |_| { 0 });
+        run(&mut prog, 0, |_| { 0 });
         assert_eq!(prog[0], 6327510);
     }
 
@@ -186,7 +210,7 @@ mod tests {
     fn day5_part1() {
         let mut prog = read_intcode_input("input/2019/day5.txt");
         let mut output = -6969;
-        run(&mut prog, |io_op| {
+        run(&mut prog, 0, |io_op| {
             match io_op {
                 IOOperation::Input => return 1,
                 IOOperation::Output(value) => {
@@ -202,7 +226,7 @@ mod tests {
     fn day5_part2() {
         let mut prog = read_intcode_input("input/2019/day5.txt");
         let mut output = -6969;
-        run(&mut prog, |io_op| {
+        run(&mut prog, 0, |io_op| {
             match io_op {
                 IOOperation::Input => return 5,
                 IOOperation::Output(value) => {

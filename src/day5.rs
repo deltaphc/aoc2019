@@ -13,7 +13,7 @@ fn day5_gen(input: &str) -> Vec<i32> {
 fn part1(input: &[i32]) -> i32 {
     let mut prog = input.to_vec();
     let mut output = -6969;
-    intcode::run(&mut prog, |io_op| {
+    intcode::run(&mut prog, 0, |io_op| {
         match io_op {
             IOOperation::Input => return 1,
             IOOperation::Output(value) => {
@@ -31,7 +31,7 @@ fn part1(input: &[i32]) -> i32 {
 fn part2(input: &[i32]) -> i32 {
     let mut prog = input.to_vec();
     let mut output = -6969;
-    intcode::run(&mut prog, |io_op| {
+    intcode::run(&mut prog, 0, |io_op| {
         match io_op {
             IOOperation::Input => return 5,
             IOOperation::Output(value) => {
