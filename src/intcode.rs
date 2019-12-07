@@ -35,10 +35,12 @@ impl From<i32> for ParamMode {
 }
 
 #[derive(Debug, Copy, Clone)]
+pub struct Param(i32, ParamMode);
+
+#[derive(Debug, Copy, Clone)]
 pub struct Instruction {
     opcode: Op,
-    param_modes: [ParamMode; 3],
-    params: [i32; 3],
+    params: [Param; 3],
     length: usize,
 }
 
@@ -57,21 +59,18 @@ pub fn decode_instr(prog: &[i32], pc: usize) -> Instruction {
         _ => panic!("Illegal instruction {} at PC={}", instr, pc),
     };
 
-    let mut params = [0_i32; 3];
+    let mut params = [Param(0, ParamMode::Immediate); 3];
     for i in 1..length {
-        params[i - 1] = prog[pc + i];
+        params[i - 1] = Param(
+            prog[pc + i],
+            ParamMode::from(nth_digit(instr, i + 1))
+        );
     }
-
-    let param_modes = [
-        ParamMode::from(nth_digit(instr, 2)),
-        ParamMode::from(nth_digit(instr, 3)),
-        ParamMode::from(nth_digit(instr, 4)),
-    ];
     
-    Instruction { opcode, param_modes, params, length }
+    Instruction { opcode, params, length }
 }
 
-fn read_value(prog: &[i32], num: i32, param_mode: ParamMode) -> i32 {
+fn read_value(prog: &[i32], Param(num, param_mode): Param) -> i32 {
     match param_mode {
         ParamMode::Position => prog[num as usize],
         ParamMode::Immediate => num,
@@ -96,47 +95,52 @@ where
         let ins = decode_instr(prog, pc);
         match ins.opcode {
             Op::Add => {
-                let left_operand = read_value(prog, ins.params[0], ins.param_modes[0]);
-                let right_operand = read_value(prog, ins.params[1], ins.param_modes[1]);
-                prog[ins.params[2] as usize] = left_operand + right_operand;
+                let left_operand = read_value(prog, ins.params[0]);
+                let right_operand = read_value(prog, ins.params[1]);
+                let write_idx = ins.params[2].0 as usize;
+                prog[write_idx] = left_operand + right_operand;
             },
             Op::Multiply => {
-                let left_operand = read_value(prog, ins.params[0], ins.param_modes[0]);
-                let right_operand = read_value(prog, ins.params[1], ins.param_modes[1]);
-                prog[ins.params[2] as usize] = left_operand * right_operand;
+                let left_operand = read_value(prog, ins.params[0]);
+                let right_operand = read_value(prog, ins.params[1]);
+                let write_idx = ins.params[2].0 as usize;
+                prog[write_idx] = left_operand * right_operand;
             },
             Op::Input => {
-                prog[ins.params[0] as usize] = io_handler(IOOperation::Input);
+                let write_idx = ins.params[0].0 as usize;
+                prog[write_idx] = io_handler(IOOperation::Input);
             },
             Op::Output => {
-                let value = read_value(prog, ins.params[0], ins.param_modes[0]);
+                let value = read_value(prog, ins.params[0]);
                 io_handler(IOOperation::Output(value));
             },
             Op::JumpIfTrue => {
-                let value = read_value(prog, ins.params[0], ins.param_modes[0]);
-                let dest = read_value(prog, ins.params[1], ins.param_modes[1]);
+                let value = read_value(prog, ins.params[0]);
+                let dest = read_value(prog, ins.params[1]);
                 if value != 0 {
                     pc = dest as usize;
                     pc_increase = false;
                 }
             },
             Op::JumpIfFalse => {
-                let value = read_value(prog, ins.params[0], ins.param_modes[0]);
-                let dest = read_value(prog, ins.params[1], ins.param_modes[1]);
+                let value = read_value(prog, ins.params[0]);
+                let dest = read_value(prog, ins.params[1]);
                 if value == 0 {
                     pc = dest as usize;
                     pc_increase = false;
                 }
             },
             Op::LessThan => {
-                let left_operand = read_value(prog, ins.params[0], ins.param_modes[0]);
-                let right_operand = read_value(prog, ins.params[1], ins.param_modes[1]);
-                prog[ins.params[2] as usize] = (left_operand < right_operand) as i32;
+                let left_operand = read_value(prog, ins.params[0]);
+                let right_operand = read_value(prog, ins.params[1]);
+                let write_idx = ins.params[2].0 as usize;
+                prog[write_idx] = (left_operand < right_operand) as i32;
             },
             Op::Equals => {
-                let left_operand = read_value(prog, ins.params[0], ins.param_modes[0]);
-                let right_operand = read_value(prog, ins.params[1], ins.param_modes[1]);
-                prog[ins.params[2] as usize] = (left_operand == right_operand) as i32;
+                let left_operand = read_value(prog, ins.params[0]);
+                let right_operand = read_value(prog, ins.params[1]);
+                let write_idx = ins.params[2].0 as usize;
+                prog[write_idx] = (left_operand == right_operand) as i32;
             },
             Op::Halt => halted = true,
         }
@@ -151,60 +155,55 @@ where
 mod tests {
     use super::*;
 
-    #[test]
-    fn day2_input() {
-        let input = std::fs::read_to_string("input/2019/day2.txt").unwrap();
-        let mut prog: Vec<i32> = input
+    fn read_intcode_input(path: &str) -> Vec<i32> {
+        let input = std::fs::read_to_string(path).unwrap();
+        input
             .trim()
             .split(',')
             .flat_map(|num_str| num_str.parse::<i32>())
-            .collect();
-        
+            .collect()
+    }
+
+    #[test]
+    fn day2_part1() {
+        let mut prog = read_intcode_input("input/2019/day2.txt");
         prog[1] = 12;
         prog[2] = 2;
-
         run(&mut prog, |_| { 0 });
-
         assert_eq!(prog[0], 6327510);
     }
 
     #[test]
-    fn day5_input() {
-        let input = std::fs::read_to_string("input/2019/day5.txt").unwrap();
-        let default_prog = input
-            .trim()
-            .split(',')
-            .flat_map(|num_str| num_str.parse::<i32>())
-            .collect::<Vec<i32>>()
-            .into_boxed_slice();
-        
-        {
-            let mut prog = default_prog.to_vec();
-            let mut output = -6969;
-            run(&mut prog, |io_op| {
-                match io_op {
-                    IOOperation::Input => return 1,
-                    IOOperation::Output(value) => {
-                        output = value;
-                        return 0;
-                    },
-                }
-            });
-            assert_eq!(output, 16434972);
-        }
-        {
-            let mut prog = default_prog.to_vec();
-            let mut output = -6969;
-            run(&mut prog, |io_op| {
-                match io_op {
-                    IOOperation::Input => return 5,
-                    IOOperation::Output(value) => {
-                        output = value;
-                        return 0;
-                    },
-                }
-            });
-            assert_eq!(output, 16694270);
-        }
+    fn day5_part1() {
+        let default_prog = read_intcode_input("input/2019/day5.txt").into_boxed_slice();
+        let mut prog = default_prog.to_vec();
+        let mut output = -6969;
+        run(&mut prog, |io_op| {
+            match io_op {
+                IOOperation::Input => return 1,
+                IOOperation::Output(value) => {
+                    output = value;
+                    return 0;
+                },
+            }
+        });
+        assert_eq!(output, 16434972);
+    }
+
+    #[test]
+    fn day5_part2() {
+        let default_prog = read_intcode_input("input/2019/day5.txt").into_boxed_slice();
+        let mut prog = default_prog.to_vec();
+        let mut output = -6969;
+        run(&mut prog, |io_op| {
+            match io_op {
+                IOOperation::Input => return 5,
+                IOOperation::Output(value) => {
+                    output = value;
+                    return 0;
+                },
+            }
+        });
+        assert_eq!(output, 16694270);
     }
 }
