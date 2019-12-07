@@ -175,8 +175,7 @@ mod tests {
 
     #[test]
     fn day5_part1() {
-        let default_prog = read_intcode_input("input/2019/day5.txt").into_boxed_slice();
-        let mut prog = default_prog.to_vec();
+        let mut prog = read_intcode_input("input/2019/day5.txt");
         let mut output = -6969;
         run(&mut prog, |io_op| {
             match io_op {
@@ -192,8 +191,7 @@ mod tests {
 
     #[test]
     fn day5_part2() {
-        let default_prog = read_intcode_input("input/2019/day5.txt").into_boxed_slice();
-        let mut prog = default_prog.to_vec();
+        let mut prog = read_intcode_input("input/2019/day5.txt");
         let mut output = -6969;
         run(&mut prog, |io_op| {
             match io_op {
