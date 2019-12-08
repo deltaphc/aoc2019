@@ -187,6 +187,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::day5;
     use crate::day7;
 
     fn read_intcode_input(path: &str) -> Vec<i32> {
@@ -208,34 +209,14 @@ mod tests {
 
     #[test]
     fn day5_part1() {
-        let mut prog = read_intcode_input("input/2019/day5.txt");
-        let mut output = -6969;
-        run(&mut prog, 0, |io_op| {
-            match io_op {
-                IOOperation::Input => return 1,
-                IOOperation::Output(value) => {
-                    output = value;
-                    return 0;
-                },
-            }
-        });
-        assert_eq!(output, 16434972);
+        let prog = read_intcode_input("input/2019/day5.txt");
+        assert_eq!(day5::part1(&prog), 16434972);
     }
 
     #[test]
     fn day5_part2() {
-        let mut prog = read_intcode_input("input/2019/day5.txt");
-        let mut output = -6969;
-        run(&mut prog, 0, |io_op| {
-            match io_op {
-                IOOperation::Input => return 5,
-                IOOperation::Output(value) => {
-                    output = value;
-                    return 0;
-                },
-            }
-        });
-        assert_eq!(output, 16694270);
+        let prog = read_intcode_input("input/2019/day5.txt");
+        assert_eq!(day5::part2(&prog), 16694270);
     }
 
     #[test]
