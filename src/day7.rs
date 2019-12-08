@@ -22,12 +22,7 @@ fn run_amplifier(prog: &mut [i32], pc: usize, phase_setting: impl Into<Option<i3
             IOOperation::Input => input_iter.next().unwrap(),
             IOOperation::Output(value) => {
                 output = value;
-                if phase_setting.is_none() {
-                    return -1; //Tells intcode to pause execution and break immediately
-                }
-                else {
-                    return 0;
-                }
+                return -1; //Tells intcode to pause execution and break immediately
             },
         }
     });
@@ -74,9 +69,10 @@ fn part2(input: &[i32]) -> i32 {
                     amp_pc[i] = output.1.last_pc;
                 }
             }
-        }
-        if output.0 > highest_output {
-            highest_output = output.0;
+
+            if output.0 > highest_output {
+                highest_output = output.0;
+            }
         }
     }
     highest_output
