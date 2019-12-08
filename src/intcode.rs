@@ -187,13 +187,13 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::day7;
 
     fn read_intcode_input(path: &str) -> Vec<i32> {
         let input = std::fs::read_to_string(path).unwrap();
         input
-            .trim()
             .split(',')
-            .flat_map(|num_str| num_str.parse::<i32>())
+            .flat_map(|num_str| num_str.trim().parse::<i32>())
             .collect()
     }
 
@@ -236,5 +236,17 @@ mod tests {
             }
         });
         assert_eq!(output, 16694270);
+    }
+
+    #[test]
+    fn day7_part1() {
+        let prog = read_intcode_input("input/2019/day7.txt");
+        assert_eq!(day7::part1(&prog), 359142);
+    }
+
+    #[test]
+    fn day7_part2() {
+        let prog = read_intcode_input("input/2019/day7.txt");
+        assert_eq!(day7::part2(&prog), 4374895);
     }
 }

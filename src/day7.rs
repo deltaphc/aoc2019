@@ -30,7 +30,7 @@ fn run_amplifier(prog: &mut [i32], pc: usize, phase_setting: impl Into<Option<i3
 }
 
 #[aoc(day7, part1)]
-fn part1(input: &[i32]) -> i32 {
+pub(crate) fn part1(input: &[i32]) -> i32 {
     let mut highest_output = 0;
     for phases in (0..=4).permutations(5) {
         let [a, b, c, d, e] = [phases[0], phases[1], phases[2], phases[3], phases[4]];
@@ -48,7 +48,7 @@ fn part1(input: &[i32]) -> i32 {
 }
 
 #[aoc(day7, part2)]
-fn part2(input: &[i32]) -> i32 {
+pub(crate) fn part2(input: &[i32]) -> i32 {
     let mut highest_output = 0;
     for phases in (5..=9).permutations(5) {
         let mut output = (0, RunResult::default());
