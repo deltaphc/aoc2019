@@ -23,7 +23,7 @@ fn run_amplifier(prog: &mut [i32], pc: usize, phase_setting: impl Into<Option<i3
             IOOperation::Output(value) => {
                 output = value;
                 if phase_setting.is_none() {
-                    return -1;
+                    return -1; //Tells intcode to pause execution and break immediately
                 }
                 else {
                     return 0;
