@@ -206,6 +206,7 @@ impl Program {
     pub fn reset(&mut self) {
         self.prog.clear();
         self.prog.extend_from_slice(&self.default_prog);
+        self.pc = 0;
     }
 }
 
