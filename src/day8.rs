@@ -41,7 +41,9 @@ fn part1(input: &[u8]) -> usize {
 }
 
 #[aoc(day8, part2)]
-fn part2(input: &[u8]) -> usize {
+fn part2(input: &[u8]) -> String {
+    let mut output = String::with_capacity(WIDTH * HEIGHT + HEIGHT + 1); // for newlines on each line and at the beginning
+    output.push('\n'); // makes it look nicer in cargo aoc output
     for y in 0..HEIGHT {
         for x in 0..WIDTH {
             for layer_idx in 0..layer_count(input) {
@@ -50,11 +52,11 @@ fn part2(input: &[u8]) -> usize {
                 if pixel == 2 { //transparent
                     continue;
                 }
-                print!("{}", if pixel == 1 { '*' } else { ' ' });
+                output.push(if pixel == 1 { '*' } else { ' ' });
                 break;
             }
         }
-        println!();
+        output.push('\n');
     }
-    31337
+    output
 }
