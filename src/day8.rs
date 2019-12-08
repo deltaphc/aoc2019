@@ -39,3 +39,22 @@ fn part1(input: &[u8]) -> usize {
     let num_two_digits = count_digits(fewest_zero_layer, 2);
     num_one_digits * num_two_digits
 }
+
+#[aoc(day8, part2)]
+fn part2(input: &[u8]) -> usize {
+    for y in 0..HEIGHT {
+        for x in 0..WIDTH {
+            for layer_idx in 0..layer_count(input) {
+                let layer = layer_data(input, layer_idx);
+                let pixel = layer[y * WIDTH + x];
+                if pixel == 2 { //transparent
+                    continue;
+                }
+                print!("{}", if pixel == 1 { '*' } else { ' ' });
+                break;
+            }
+        }
+        println!();
+    }
+    31337
+}
