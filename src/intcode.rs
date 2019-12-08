@@ -184,6 +184,41 @@ where
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct Program {
+    default_prog: Box<[i32]>,
+    prog: Vec<i32>,
+    pc: usize,
+}
+
+impl Program {
+    /// Runs the current Intcode program, and returns whether the program has halted.
+    pub fn run<F>(&mut self, io_handler: F) -> bool
+    where
+        F: FnMut(IOOperation) -> i32
+    {
+        let run_result = run(&mut self.prog, self.pc, io_handler);
+        self.pc = run_result.last_pc;
+        run_result.halted
+    }
+
+    /// Resets the current Intcode program to its initial state.
+    pub fn reset(&mut self) {
+        self.prog.clear();
+        self.prog.extend_from_slice(&self.default_prog);
+    }
+}
+
+impl From<&[i32]> for Program {
+    fn from(prog: &[i32]) -> Program {
+        Program {
+            default_prog: prog.to_vec().into_boxed_slice(),
+            prog: prog.to_vec(),
+            pc: 0,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
