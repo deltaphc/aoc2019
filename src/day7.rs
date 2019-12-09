@@ -23,7 +23,7 @@ fn run_amplifier(prog: &mut Program, phase_setting: impl Into<Option<i64>>, inpu
     if phase_setting.is_none() {
         input_iter.next();
     }
-    let halted = prog.run(|io_op| {
+    prog.run(|io_op| {
         match io_op {
             IOOperation::Input => input_iter.next().unwrap(),
             IOOperation::Output(value) => {
@@ -32,7 +32,7 @@ fn run_amplifier(prog: &mut Program, phase_setting: impl Into<Option<i64>>, inpu
             },
         }
     });
-    AmpResult { output, halted }
+    AmpResult { output, halted: prog.is_halted() }
 }
 
 #[aoc(day7, part1)]

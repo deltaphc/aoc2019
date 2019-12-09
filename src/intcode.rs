@@ -15,6 +15,7 @@ pub enum Op {
     JumpIfFalse,
     LessThan,
     Equals,
+    RelativeBase,
     Halt,
 }
 
@@ -22,6 +23,7 @@ pub enum Op {
 pub enum ParamMode {
     Position,
     Immediate,
+    Relative,
 }
 
 impl Default for ParamMode {
@@ -35,6 +37,7 @@ impl From<i64> for ParamMode {
         match num {
             0 => ParamMode::Position,
             1 => ParamMode::Immediate,
+            2 => ParamMode::Relative,
             _ => panic!("Invalid parameter mode {}", num),
         }
     }
@@ -53,135 +56,10 @@ pub struct Instruction {
     length: usize,
 }
 
-pub fn decode_instr(prog: &[i64], pc: usize) -> Instruction {
-    let instr = prog[pc];
-    let (opcode, length) = match instr % 100 { // first two digits
-        1 => (Op::Add, 4),
-        2 => (Op::Multiply, 4),
-        3 => (Op::Input, 2),
-        4 => (Op::Output, 2),
-        5 => (Op::JumpIfTrue, 3),
-        6 => (Op::JumpIfFalse, 3),
-        7 => (Op::LessThan, 4),
-        8 => (Op::Equals, 4),
-        99 => (Op::Halt, 1),
-        _ => panic!("Illegal instruction {} at PC={}", instr, pc),
-    };
-
-    let mut params = [Param::default(); 3];
-    for i in 1..length {
-        params[i - 1] = Param {
-            value: prog[pc + i],
-            mode: ParamMode::from(nth_digit(instr, i + 1)),
-        };
-    }
-    
-    Instruction { opcode, params, length }
-}
-
-fn read_value(prog: &[i64], Param { value, mode }: Param) -> i64 {
-    match mode {
-        ParamMode::Position => prog[value as usize],
-        ParamMode::Immediate => value,
-    }
-}
-
 #[derive(Debug, Copy, Clone)]
 pub enum IOOperation {
     Input,
     Output(i64),
-}
-
-#[derive(Debug, Copy, Clone, Default)]
-pub struct RunResult {
-    pub last_pc: usize,
-    pub halted: bool,
-}
-
-/// Runs the given Intcode program using the provided program counter and I/O handler.
-///
-/// The `io_handler` closure should return either the input value, or a `-1` on output if execution should pause, causing the function to return.
-///
-/// Returns the status of execution.
-pub fn run<F>(prog: &mut [i64], pc: usize, io_handler: F) -> RunResult
-where
-    F: FnMut(IOOperation) -> i64
-{
-    let mut pc = pc; // Program counter
-    let mut io_handler = io_handler;
-    let mut halted = false;
-
-    while !halted {
-        let mut pc_increase = true;
-        let ins = decode_instr(prog, pc);
-        match ins.opcode {
-            Op::Add => {
-                let left_operand = read_value(prog, ins.params[0]);
-                let right_operand = read_value(prog, ins.params[1]);
-                let write_idx = ins.params[2].value as usize;
-                prog[write_idx] = left_operand + right_operand;
-            },
-            Op::Multiply => {
-                let left_operand = read_value(prog, ins.params[0]);
-                let right_operand = read_value(prog, ins.params[1]);
-                let write_idx = ins.params[2].value as usize;
-                prog[write_idx] = left_operand * right_operand;
-            },
-            Op::Input => {
-                let write_idx = ins.params[0].value as usize;
-                prog[write_idx] = io_handler(IOOperation::Input);
-            },
-            Op::Output => {
-                let value = read_value(prog, ins.params[0]);
-                let continue_code = io_handler(IOOperation::Output(value));
-                if continue_code == -1 { // Pause execution
-                    pc += ins.length;
-                    break;
-                }
-            },
-            Op::JumpIfTrue => {
-                let value = read_value(prog, ins.params[0]);
-                let dest = read_value(prog, ins.params[1]);
-                if value != 0 {
-                    pc = dest as usize;
-                    pc_increase = false;
-                }
-            },
-            Op::JumpIfFalse => {
-                let value = read_value(prog, ins.params[0]);
-                let dest = read_value(prog, ins.params[1]);
-                if value == 0 {
-                    pc = dest as usize;
-                    pc_increase = false;
-                }
-            },
-            Op::LessThan => {
-                let left_operand = read_value(prog, ins.params[0]);
-                let right_operand = read_value(prog, ins.params[1]);
-                let write_idx = ins.params[2].value as usize;
-                prog[write_idx] = (left_operand < right_operand) as i64;
-            },
-            Op::Equals => {
-                let left_operand = read_value(prog, ins.params[0]);
-                let right_operand = read_value(prog, ins.params[1]);
-                let write_idx = ins.params[2].value as usize;
-                prog[write_idx] = (left_operand == right_operand) as i64;
-            },
-            Op::Halt => {
-                halted = true;
-                pc_increase = false;
-            },
-        }
-
-        if pc_increase {
-            pc += ins.length;
-        }
-    }
-    
-    RunResult {
-        last_pc: pc,
-        halted,
-    }
 }
 
 #[derive(Debug, Clone)]
@@ -189,17 +67,157 @@ pub struct Program {
     default_prog: Box<[i64]>,
     prog: Vec<i64>,
     pc: usize,
+    relative_base: usize,
+    halted: bool,
 }
 
 impl Program {
-    /// Runs the current Intcode program, and returns whether the program has halted.
-    pub fn run<F>(&mut self, io_handler: F) -> bool
+    pub fn prog(&self) -> &[i64] {
+        &self.prog
+    }
+
+    pub fn prog_mut(&mut self) -> &mut [i64] {
+        &mut self.prog
+    }
+
+    pub fn is_halted(&self) -> bool {
+        self.halted
+    }
+
+    fn decode_instr(&self) -> Instruction {
+        let instr = self.prog[self.pc];
+        let (opcode, length) = match instr % 100 { // first two digits
+            1 => (Op::Add, 4),
+            2 => (Op::Multiply, 4),
+            3 => (Op::Input, 2),
+            4 => (Op::Output, 2),
+            5 => (Op::JumpIfTrue, 3),
+            6 => (Op::JumpIfFalse, 3),
+            7 => (Op::LessThan, 4),
+            8 => (Op::Equals, 4),
+            9 => (Op::RelativeBase, 2),
+            99 => (Op::Halt, 1),
+            _ => panic!("Illegal instruction {} at PC={}", instr, self.pc),
+        };
+    
+        let mut params = [Param::default(); 3];
+        for i in 1..length {
+            params[i - 1] = Param {
+                value: self.prog[self.pc + i],
+                mode: ParamMode::from(nth_digit(instr, i + 1)),
+            };
+        }
+        
+        Instruction { opcode, params, length }
+    }
+    
+    fn read_value(&mut self, param: Param) -> i64 {
+        let read_idx = match param.mode {
+            ParamMode::Position => param.value as usize,
+            ParamMode::Immediate => 0,
+            ParamMode::Relative => self.relative_base + param.value as usize,
+        };
+
+        if let ParamMode::Position | ParamMode::Relative = param.mode {
+            if read_idx >= self.prog.len() {
+                let extend_len = read_idx as usize - (self.prog.len() - 1);
+                self.prog.extend(std::iter::repeat(0).take(extend_len));
+            }
+        }
+
+        match param.mode {
+            ParamMode::Position | ParamMode::Relative => self.prog[read_idx],
+            ParamMode::Immediate => param.value,
+        }
+    }
+
+    fn write_value(&mut self, param: Param, write_value: i64) {
+        let write_idx = match param.mode {
+            ParamMode::Position => param.value as usize,
+            ParamMode::Immediate => panic!("Attempted to write to immediate value. PC={}, param={:?}", self.pc, param),
+            ParamMode::Relative => self.relative_base + param.value as usize,
+        };
+        if write_idx >= self.prog.len() {
+            let extend_len = write_idx - (self.prog.len() - 1);
+            self.prog.extend(std::iter::repeat(0).take(extend_len));
+        }
+        self.prog[write_idx] = write_value;
+    }
+
+    /// Runs the current Intcode program using the provided I/O handler.
+    ///
+    /// The `io_handler` closure should return either the input value, or a `-1` on output if execution should pause, causing the function to return.
+    pub fn run<F>(&mut self, io_handler: F)
     where
         F: FnMut(IOOperation) -> i64
     {
-        let run_result = run(&mut self.prog, self.pc, io_handler);
-        self.pc = run_result.last_pc;
-        run_result.halted
+        let mut io_handler = io_handler;
+        
+        while !self.halted {
+            let mut pc_increase = true;
+            let ins = self.decode_instr();
+            match ins.opcode {
+                Op::Add => {
+                    let left_operand = self.read_value(ins.params[0]);
+                    let right_operand = self.read_value(ins.params[1]);
+                    self.write_value(ins.params[2], left_operand + right_operand);
+                },
+                Op::Multiply => {
+                    let left_operand = self.read_value(ins.params[0]);
+                    let right_operand = self.read_value(ins.params[1]);
+                    self.write_value(ins.params[2], left_operand * right_operand);
+                },
+                Op::Input => {
+                    self.write_value(ins.params[0], io_handler(IOOperation::Input));
+                },
+                Op::Output => {
+                    let value = self.read_value(ins.params[0]);
+                    let continue_code = io_handler(IOOperation::Output(value));
+                    if continue_code == -1 { // Pause execution
+                        self.pc += ins.length;
+                        break;
+                    }
+                },
+                Op::JumpIfTrue => {
+                    let value = self.read_value(ins.params[0]);
+                    let dest = self.read_value(ins.params[1]);
+                    if value != 0 {
+                        self.pc = dest as usize;
+                        pc_increase = false;
+                    }
+                },
+                Op::JumpIfFalse => {
+                    let value = self.read_value(ins.params[0]);
+                    let dest = self.read_value(ins.params[1]);
+                    if value == 0 {
+                        self.pc = dest as usize;
+                        pc_increase = false;
+                    }
+                },
+                Op::LessThan => {
+                    let left_operand = self.read_value(ins.params[0]);
+                    let right_operand = self.read_value(ins.params[1]);
+                    self.write_value(ins.params[2], (left_operand < right_operand) as i64);
+                },
+                Op::Equals => {
+                    let left_operand = self.read_value(ins.params[0]);
+                    let right_operand = self.read_value(ins.params[1]);
+                    self.write_value(ins.params[2], (left_operand == right_operand) as i64);
+                },
+                Op::RelativeBase => {
+                    let base_offset = self.read_value(ins.params[0]);
+                    self.relative_base += base_offset as usize;
+                },
+                Op::Halt => {
+                    self.halted = true;
+                    pc_increase = false;
+                },
+            }
+
+            if pc_increase {
+                self.pc += ins.length;
+            }
+        }
     }
  
     /// Resets the current Intcode program to its initial state.
@@ -207,6 +225,8 @@ impl Program {
         self.prog.clear();
         self.prog.extend_from_slice(&self.default_prog);
         self.pc = 0;
+        self.relative_base = 0;
+        self.halted = false;
     }
 }
 
@@ -216,6 +236,8 @@ impl From<&[i64]> for Program {
             default_prog: prog.to_vec().into_boxed_slice(),
             prog: prog.to_vec(),
             pc: 0,
+            relative_base: 0,
+            halted: false,
         }
     }
 }
@@ -236,11 +258,15 @@ mod tests {
 
     #[test]
     fn day2_part1() {
-        let mut prog = read_intcode_input("input/2019/day2.txt");
-        prog[1] = 12;
-        prog[2] = 2;
-        run(&mut prog, 0, |_| { 0 });
-        assert_eq!(prog[0], 6327510);
+        let input = read_intcode_input("input/2019/day2.txt");
+        let mut prog = Program::from(&input[..]);
+        {
+            let prog_content = prog.prog_mut();
+            prog_content[1] = 12;
+            prog_content[2] = 2;
+        }
+        prog.run(|_| { 0 });
+        assert_eq!(prog.prog()[0], 6327510);
     }
 
     #[test]
