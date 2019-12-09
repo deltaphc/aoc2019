@@ -62,6 +62,34 @@ pub enum IOOperation {
     Output(i64),
 }
 
+#[derive(Debug, Copy, Clone)]
+pub enum IOReturn {
+    Input(i64),
+    Output(ExecuteAction),
+}
+
+impl IOReturn {
+    pub fn input_value(self) -> i64 {
+        match self {
+            IOReturn::Input(value) => value,
+            IOReturn::Output(_) => panic!("Attempted to get input value from IOReturn::Output"),
+        }
+    }
+
+    pub fn exec_action(self) -> ExecuteAction {
+        match self {
+            IOReturn::Input(_) => panic!("Attempted to get execution action from IOReturn::Input"),
+            IOReturn::Output(exec_action) => exec_action,
+        }
+    }
+}
+
+#[derive(Debug, Copy, Clone)]
+pub enum ExecuteAction {
+    Continue,
+    Break,
+}
+
 #[derive(Debug, Clone)]
 pub struct Program {
     default_prog: Box<[i64]>,
@@ -86,7 +114,7 @@ impl Program {
         self.halted
     }
 
-    fn decode_instr(&self) -> Instruction {
+    fn decode(&self) -> Instruction {
         let instr = self.prog[self.pc];
         let (opcode, length) = match instr % 100 { // first two digits
             1 => (Op::Add, 4),
@@ -146,78 +174,86 @@ impl Program {
         self.prog[write_idx] = write_value;
     }
 
+    /// Executes the given decoded instruction, and returns whether the execution loop should pause early.
+    fn execute<F>(&mut self, ins: Instruction, io_handler: &mut F) -> ExecuteAction
+    where
+        F: FnMut(IOOperation) -> IOReturn
+    {
+        let mut exec_action = ExecuteAction::Continue;
+        let mut pc_increase = true;
+
+        match ins.opcode {
+            Op::Add => {
+                let left_operand = self.read_value(ins.params[0]);
+                let right_operand = self.read_value(ins.params[1]);
+                self.write_value(ins.params[2], left_operand + right_operand);
+            },
+            Op::Multiply => {
+                let left_operand = self.read_value(ins.params[0]);
+                let right_operand = self.read_value(ins.params[1]);
+                self.write_value(ins.params[2], left_operand * right_operand);
+            },
+            Op::Input => {
+                self.write_value(ins.params[0], io_handler(IOOperation::Input).input_value());
+            },
+            Op::Output => {
+                let value = self.read_value(ins.params[0]);
+                exec_action = io_handler(IOOperation::Output(value)).exec_action();
+            },
+            Op::JumpIfTrue => {
+                let value = self.read_value(ins.params[0]);
+                let dest = self.read_value(ins.params[1]);
+                if value != 0 {
+                    self.pc = dest as usize;
+                    pc_increase = false;
+                }
+            },
+            Op::JumpIfFalse => {
+                let value = self.read_value(ins.params[0]);
+                let dest = self.read_value(ins.params[1]);
+                if value == 0 {
+                    self.pc = dest as usize;
+                    pc_increase = false;
+                }
+            },
+            Op::LessThan => {
+                let left_operand = self.read_value(ins.params[0]);
+                let right_operand = self.read_value(ins.params[1]);
+                self.write_value(ins.params[2], (left_operand < right_operand) as i64);
+            },
+            Op::Equals => {
+                let left_operand = self.read_value(ins.params[0]);
+                let right_operand = self.read_value(ins.params[1]);
+                self.write_value(ins.params[2], (left_operand == right_operand) as i64);
+            },
+            Op::RelativeBase => {
+                let base_offset = self.read_value(ins.params[0]);
+                self.relative_base = self.relative_base.wrapping_add(base_offset as usize);
+            },
+            Op::Halt => {
+                self.halted = true;
+                pc_increase = false;
+            },
+        }
+
+        if pc_increase {
+            self.pc += ins.length;
+        }
+
+        exec_action
+    }
+
     /// Runs the current Intcode program using the provided I/O handler.
-    ///
-    /// The `io_handler` closure should return either the input value, or a `-1` on output if execution should pause, causing the function to return.
     pub fn run<F>(&mut self, io_handler: F)
     where
-        F: FnMut(IOOperation) -> i64
+        F: FnMut(IOOperation) -> IOReturn
     {
         let mut io_handler = io_handler;
-        
         while !self.halted {
-            let mut pc_increase = true;
-            let ins = self.decode_instr();
-            match ins.opcode {
-                Op::Add => {
-                    let left_operand = self.read_value(ins.params[0]);
-                    let right_operand = self.read_value(ins.params[1]);
-                    self.write_value(ins.params[2], left_operand + right_operand);
-                },
-                Op::Multiply => {
-                    let left_operand = self.read_value(ins.params[0]);
-                    let right_operand = self.read_value(ins.params[1]);
-                    self.write_value(ins.params[2], left_operand * right_operand);
-                },
-                Op::Input => {
-                    self.write_value(ins.params[0], io_handler(IOOperation::Input));
-                },
-                Op::Output => {
-                    let value = self.read_value(ins.params[0]);
-                    let continue_code = io_handler(IOOperation::Output(value));
-                    if continue_code == -1 { // Pause execution
-                        self.pc += ins.length;
-                        break;
-                    }
-                },
-                Op::JumpIfTrue => {
-                    let value = self.read_value(ins.params[0]);
-                    let dest = self.read_value(ins.params[1]);
-                    if value != 0 {
-                        self.pc = dest as usize;
-                        pc_increase = false;
-                    }
-                },
-                Op::JumpIfFalse => {
-                    let value = self.read_value(ins.params[0]);
-                    let dest = self.read_value(ins.params[1]);
-                    if value == 0 {
-                        self.pc = dest as usize;
-                        pc_increase = false;
-                    }
-                },
-                Op::LessThan => {
-                    let left_operand = self.read_value(ins.params[0]);
-                    let right_operand = self.read_value(ins.params[1]);
-                    self.write_value(ins.params[2], (left_operand < right_operand) as i64);
-                },
-                Op::Equals => {
-                    let left_operand = self.read_value(ins.params[0]);
-                    let right_operand = self.read_value(ins.params[1]);
-                    self.write_value(ins.params[2], (left_operand == right_operand) as i64);
-                },
-                Op::RelativeBase => {
-                    let base_offset = self.read_value(ins.params[0]);
-                    self.relative_base = self.relative_base.wrapping_add(base_offset as usize);
-                },
-                Op::Halt => {
-                    self.halted = true;
-                    pc_increase = false;
-                },
-            }
-
-            if pc_increase {
-                self.pc += ins.length;
+            let instruction = self.decode();
+            let exec_action = self.execute(instruction, &mut io_handler);
+            if let ExecuteAction::Break = exec_action {
+                break;
             }
         }
     }
@@ -269,7 +305,7 @@ mod tests {
             prog_content[1] = 12;
             prog_content[2] = 2;
         }
-        prog.run(|_| { 0 });
+        prog.run(|_| { IOReturn::Input(0) });
         assert_eq!(prog.prog()[0], 6327510);
     }
 

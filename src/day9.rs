@@ -1,5 +1,5 @@
 use aoc_runner_derive::{aoc, aoc_generator};
-use crate::intcode::{Program, IOOperation};
+use crate::intcode::{Program, IOOperation, IOReturn, ExecuteAction};
 
 #[aoc_generator(day9)]
 fn day9_gen(input: &str) -> Vec<i64> {
@@ -15,10 +15,10 @@ pub fn part1(input: &[i64]) -> i64 {
     let mut output = -6969;
     prog.run(|io_op| {
         match io_op {
-            IOOperation::Input => { return 1; },
+            IOOperation::Input => IOReturn::Input(1),
             IOOperation::Output(value) => {
                 output = value;
-                return 0;
+                IOReturn::Output(ExecuteAction::Continue)
             }
         }
     });
@@ -31,10 +31,10 @@ pub fn part2(input: &[i64]) -> i64 {
     let mut output = -6969;
     prog.run(|io_op| {
         match io_op {
-            IOOperation::Input => { return 2; },
+            IOOperation::Input => IOReturn::Input(2),
             IOOperation::Output(value) => {
                 output = value;
-                return 0;
+                IOReturn::Output(ExecuteAction::Continue)
             }
         }
     });

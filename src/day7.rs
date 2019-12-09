@@ -1,5 +1,5 @@
 use aoc_runner_derive::{aoc, aoc_generator};
-use crate::intcode::{Program, IOOperation};
+use crate::intcode::{Program, IOOperation, IOReturn, ExecuteAction};
 use itertools::Itertools;
 
 #[aoc_generator(day7)]
@@ -25,10 +25,10 @@ fn run_amplifier(prog: &mut Program, phase_setting: impl Into<Option<i64>>, inpu
     }
     prog.run(|io_op| {
         match io_op {
-            IOOperation::Input => input_iter.next().unwrap(),
+            IOOperation::Input => IOReturn::Input(input_iter.next().unwrap()),
             IOOperation::Output(value) => {
                 output = value;
-                return -1; //Tells intcode to pause execution and break immediately
+                IOReturn::Output(ExecuteAction::Break)
             },
         }
     });
