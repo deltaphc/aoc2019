@@ -156,7 +156,9 @@ impl Program {
         }
 
         match param.mode {
-            ParamMode::Position | ParamMode::Relative => self.prog[read_idx],
+            // We can use `get_unchecked` here because by casting to usize, we know we're not negative.
+            // We've also verified that the program is large enough to contain the index.
+            ParamMode::Position | ParamMode::Relative => unsafe { *self.prog.get_unchecked(read_idx) },
             ParamMode::Immediate => param.value,
         }
     }
@@ -171,7 +173,10 @@ impl Program {
             let extend_len = write_idx - (self.prog.len() - 1);
             self.prog.extend(std::iter::repeat(0).take(extend_len));
         }
-        self.prog[write_idx] = write_value;
+
+        // We can use `get_unchecked_mut` here because by casting to usize, we know we're not negative.
+        // We've also verified that the program is large enough to contain the index.
+        unsafe { *self.prog.get_unchecked_mut(write_idx) = write_value; }
     }
 
     /// Executes the given decoded instruction, and returns whether the execution loop should pause early.
