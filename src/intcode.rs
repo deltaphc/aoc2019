@@ -72,10 +72,12 @@ pub struct Program {
 }
 
 impl Program {
+    #[allow(dead_code)]
     pub fn prog(&self) -> &[i64] {
         &self.prog
     }
 
+    #[allow(dead_code)]
     pub fn prog_mut(&mut self) -> &mut [i64] {
         &mut self.prog
     }
@@ -221,6 +223,7 @@ impl Program {
     }
  
     /// Resets the current Intcode program to its initial state.
+    #[allow(dead_code)]
     pub fn reset(&mut self) {
         self.prog.clear();
         self.prog.extend_from_slice(&self.default_prog);
