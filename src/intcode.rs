@@ -1,7 +1,7 @@
-const POW10: [i32; 6] = [1, 10, 100, 1000, 10000, 100000];
+const POW10: [i64; 6] = [1, 10, 100, 1000, 10000, 100000];
 
 /// Returns the `n`th digit (from right to left) of the given six-digit `num`.
-fn nth_digit(num: i32, n: usize) -> i32 {
+fn nth_digit(num: i64, n: usize) -> i64 {
     (num / POW10[n]) % 10
 }
 
@@ -30,8 +30,8 @@ impl Default for ParamMode {
     }
 }
 
-impl From<i32> for ParamMode {
-    fn from(num: i32) -> ParamMode {
+impl From<i64> for ParamMode {
+    fn from(num: i64) -> ParamMode {
         match num {
             0 => ParamMode::Position,
             1 => ParamMode::Immediate,
@@ -42,7 +42,7 @@ impl From<i32> for ParamMode {
 
 #[derive(Debug, Copy, Clone, Default)]
 pub struct Param {
-    value: i32,
+    value: i64,
     mode: ParamMode,
 }
 
@@ -53,7 +53,7 @@ pub struct Instruction {
     length: usize,
 }
 
-pub fn decode_instr(prog: &[i32], pc: usize) -> Instruction {
+pub fn decode_instr(prog: &[i64], pc: usize) -> Instruction {
     let instr = prog[pc];
     let (opcode, length) = match instr % 100 { // first two digits
         1 => (Op::Add, 4),
@@ -79,7 +79,7 @@ pub fn decode_instr(prog: &[i32], pc: usize) -> Instruction {
     Instruction { opcode, params, length }
 }
 
-fn read_value(prog: &[i32], Param { value, mode }: Param) -> i32 {
+fn read_value(prog: &[i64], Param { value, mode }: Param) -> i64 {
     match mode {
         ParamMode::Position => prog[value as usize],
         ParamMode::Immediate => value,
@@ -89,7 +89,7 @@ fn read_value(prog: &[i32], Param { value, mode }: Param) -> i32 {
 #[derive(Debug, Copy, Clone)]
 pub enum IOOperation {
     Input,
-    Output(i32),
+    Output(i64),
 }
 
 #[derive(Debug, Copy, Clone, Default)]
@@ -103,9 +103,9 @@ pub struct RunResult {
 /// The `io_handler` closure should return either the input value, or a `-1` on output if execution should pause, causing the function to return.
 ///
 /// Returns the status of execution.
-pub fn run<F>(prog: &mut [i32], pc: usize, io_handler: F) -> RunResult
+pub fn run<F>(prog: &mut [i64], pc: usize, io_handler: F) -> RunResult
 where
-    F: FnMut(IOOperation) -> i32
+    F: FnMut(IOOperation) -> i64
 {
     let mut pc = pc; // Program counter
     let mut io_handler = io_handler;
@@ -159,13 +159,13 @@ where
                 let left_operand = read_value(prog, ins.params[0]);
                 let right_operand = read_value(prog, ins.params[1]);
                 let write_idx = ins.params[2].value as usize;
-                prog[write_idx] = (left_operand < right_operand) as i32;
+                prog[write_idx] = (left_operand < right_operand) as i64;
             },
             Op::Equals => {
                 let left_operand = read_value(prog, ins.params[0]);
                 let right_operand = read_value(prog, ins.params[1]);
                 let write_idx = ins.params[2].value as usize;
-                prog[write_idx] = (left_operand == right_operand) as i32;
+                prog[write_idx] = (left_operand == right_operand) as i64;
             },
             Op::Halt => {
                 halted = true;
@@ -186,8 +186,8 @@ where
 
 #[derive(Debug, Clone)]
 pub struct Program {
-    default_prog: Box<[i32]>,
-    prog: Vec<i32>,
+    default_prog: Box<[i64]>,
+    prog: Vec<i64>,
     pc: usize,
 }
 
@@ -195,13 +195,13 @@ impl Program {
     /// Runs the current Intcode program, and returns whether the program has halted.
     pub fn run<F>(&mut self, io_handler: F) -> bool
     where
-        F: FnMut(IOOperation) -> i32
+        F: FnMut(IOOperation) -> i64
     {
         let run_result = run(&mut self.prog, self.pc, io_handler);
         self.pc = run_result.last_pc;
         run_result.halted
     }
-
+ 
     /// Resets the current Intcode program to its initial state.
     pub fn reset(&mut self) {
         self.prog.clear();
@@ -210,8 +210,8 @@ impl Program {
     }
 }
 
-impl From<&[i32]> for Program {
-    fn from(prog: &[i32]) -> Program {
+impl From<&[i64]> for Program {
+    fn from(prog: &[i64]) -> Program {
         Program {
             default_prog: prog.to_vec().into_boxed_slice(),
             prog: prog.to_vec(),
@@ -226,11 +226,11 @@ mod tests {
     use crate::day5;
     use crate::day7;
 
-    fn read_intcode_input(path: &str) -> Vec<i32> {
+    fn read_intcode_input(path: &str) -> Vec<i64> {
         let input = std::fs::read_to_string(path).unwrap();
         input
             .split(',')
-            .flat_map(|num_str| num_str.trim().parse::<i32>())
+            .flat_map(|num_str| num_str.trim().parse::<i64>())
             .collect()
     }
 

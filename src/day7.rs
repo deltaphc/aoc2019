@@ -3,20 +3,20 @@ use crate::intcode::{Program, IOOperation};
 use itertools::Itertools;
 
 #[aoc_generator(day7)]
-fn day7_gen(input: &str) -> Vec<i32> {
+fn day7_gen(input: &str) -> Vec<i64> {
     input
         .split(',')
-        .flat_map(|num_str| num_str.trim().parse::<i32>())
+        .flat_map(|num_str| num_str.trim().parse::<i64>())
         .collect()
 }
 
 #[derive(Debug, Copy, Clone, Default)]
 struct AmpResult {
-    output: i32,
+    output: i64,
     halted: bool,
 }
 
-fn run_amplifier(prog: &mut Program, phase_setting: impl Into<Option<i32>>, input_signal: i32) -> AmpResult {
+fn run_amplifier(prog: &mut Program, phase_setting: impl Into<Option<i64>>, input_signal: i64) -> AmpResult {
     let mut output = 0;
     let phase_setting = phase_setting.into();
     let mut input_iter = std::iter::once(phase_setting.unwrap_or(0)).chain(std::iter::repeat(input_signal));
@@ -36,7 +36,7 @@ fn run_amplifier(prog: &mut Program, phase_setting: impl Into<Option<i32>>, inpu
 }
 
 #[aoc(day7, part1)]
-pub(crate) fn part1(input: &[i32]) -> i32 {
+pub(crate) fn part1(input: &[i64]) -> i64 {
     let mut highest_output = 0;
     for phases in (0..=4).permutations(5) {
         let mut amp_progs = [Program::from(input), Program::from(input), Program::from(input), Program::from(input), Program::from(input)];
@@ -52,7 +52,7 @@ pub(crate) fn part1(input: &[i32]) -> i32 {
 }
 
 #[aoc(day7, part2)]
-pub(crate) fn part2(input: &[i32]) -> i32 {
+pub(crate) fn part2(input: &[i64]) -> i64 {
     let mut highest_output = 0;
     for phases in (5..=9).permutations(5) {
         let mut amp_progs = [Program::from(input), Program::from(input), Program::from(input), Program::from(input), Program::from(input)];
