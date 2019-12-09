@@ -115,7 +115,7 @@ impl Program {
         let read_idx = match param.mode {
             ParamMode::Position => param.value as usize,
             ParamMode::Immediate => 0,
-            ParamMode::Relative => self.relative_base + param.value as usize,
+            ParamMode::Relative => self.relative_base.wrapping_add(param.value as usize),
         };
 
         if let ParamMode::Position | ParamMode::Relative = param.mode {
@@ -135,7 +135,7 @@ impl Program {
         let write_idx = match param.mode {
             ParamMode::Position => param.value as usize,
             ParamMode::Immediate => panic!("Attempted to write to immediate value. PC={}, param={:?}", self.pc, param),
-            ParamMode::Relative => self.relative_base + param.value as usize,
+            ParamMode::Relative => self.relative_base.wrapping_add(param.value as usize),
         };
         if write_idx >= self.prog.len() {
             let extend_len = write_idx - (self.prog.len() - 1);
@@ -206,7 +206,7 @@ impl Program {
                 },
                 Op::RelativeBase => {
                     let base_offset = self.read_value(ins.params[0]);
-                    self.relative_base += base_offset as usize;
+                    self.relative_base = self.relative_base.wrapping_add(base_offset as usize);
                 },
                 Op::Halt => {
                     self.halted = true;
@@ -247,6 +247,7 @@ mod tests {
     use super::*;
     use crate::day5;
     use crate::day7;
+    use crate::day9;
 
     fn read_intcode_input(path: &str) -> Vec<i64> {
         let input = std::fs::read_to_string(path).unwrap();
@@ -291,5 +292,17 @@ mod tests {
     fn day7_part2() {
         let prog = read_intcode_input("input/2019/day7.txt");
         assert_eq!(day7::part2(&prog), 4374895);
+    }
+
+    #[test]
+    fn day9_part1() {
+        let prog = read_intcode_input("input/2019/day9.txt");
+        assert_eq!(day9::part1(&prog), 3235019597);
+    }
+
+    #[test]
+    fn day9_part2() {
+        let prog = read_intcode_input("input/2019/day9.txt");
+        assert_eq!(day9::part2(&prog), 80274);
     }
 }

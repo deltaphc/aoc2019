@@ -10,7 +10,7 @@ fn day9_gen(input: &str) -> Vec<i64> {
 }
 
 #[aoc(day9, part1)]
-fn part1(input: &[i64]) -> i64 {
+pub fn part1(input: &[i64]) -> i64 {
     let mut prog = Program::from(input);
     let mut output = -6969;
     prog.run(|io_op| {
@@ -26,7 +26,7 @@ fn part1(input: &[i64]) -> i64 {
 }
 
 #[aoc(day9, part2)]
-fn part2(input: &[i64]) -> i64 {
+pub fn part2(input: &[i64]) -> i64 {
     let mut prog = Program::from(input);
     let mut output = -6969;
     prog.run(|io_op| {
