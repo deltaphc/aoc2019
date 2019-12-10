@@ -1,10 +1,3 @@
-const POW10: [i64; 6] = [1, 10, 100, 1000, 10000, 100000];
-
-/// Returns the `n`th digit (from right to left) of the given six-digit `num`.
-fn nth_digit(num: i64, n: usize) -> i64 {
-    (num / POW10[n]) % 10
-}
-
 #[derive(Debug, Copy, Clone)]
 pub enum Op {
     Add,
@@ -26,14 +19,8 @@ pub enum ParamMode {
     Relative,
 }
 
-impl Default for ParamMode {
-    fn default() -> ParamMode {
-        ParamMode::Position
-    }
-}
-
-impl From<i64> for ParamMode {
-    fn from(num: i64) -> ParamMode {
+impl From<u8> for ParamMode {
+    fn from(num: u8) -> ParamMode {
         match num {
             0 => ParamMode::Position,
             1 => ParamMode::Immediate,
@@ -43,7 +30,7 @@ impl From<i64> for ParamMode {
     }
 }
 
-#[derive(Debug, Copy, Clone, Default)]
+#[derive(Debug, Copy, Clone)]
 pub struct Param {
     value: i64,
     mode: ParamMode,
@@ -115,28 +102,43 @@ impl Program {
     }
 
     fn decode(&self) -> Instruction {
-        let instr = self.prog[self.pc];
-        let (opcode, length) = match instr % 100 { // first two digits
-            1 => (Op::Add, 4),
-            2 => (Op::Multiply, 4),
-            3 => (Op::Input, 2),
-            4 => (Op::Output, 2),
-            5 => (Op::JumpIfTrue, 3),
-            6 => (Op::JumpIfFalse, 3),
-            7 => (Op::LessThan, 4),
-            8 => (Op::Equals, 4),
-            9 => (Op::RelativeBase, 2),
-            99 => (Op::Halt, 1),
-            _ => panic!("Illegal instruction {} at PC={}", instr, self.pc),
+        let mut instr = unsafe { *self.prog.get_unchecked(self.pc) } as u16; //gives slightly better perf on div/mod than i64
+        let op = instr % 100;
+        instr /= 100;
+        let mode0 = instr % 10;
+        instr /= 10;
+        let mode1 = instr % 10;
+        instr /= 10;
+        let mode2 = instr % 10;
+
+        let (length, opcode) = match op {
+            1 => (4, Op::Add),
+            2 => (4, Op::Multiply),
+            3 => (2, Op::Input),
+            4 => (2, Op::Output),
+            5 => (3, Op::JumpIfTrue),
+            6 => (3, Op::JumpIfFalse),
+            7 => (4, Op::LessThan),
+            8 => (4, Op::Equals),
+            9 => (2, Op::RelativeBase),
+            99 => (1, Op::Halt),
+            _ => panic!("Illegal instruction {} at PC={}", self.prog[self.pc], self.pc),
         };
-    
-        let mut params = [Param::default(); 3];
-        for i in 1..length {
-            params[i - 1] = Param {
-                value: self.prog[self.pc + i],
-                mode: ParamMode::from(nth_digit(instr, i + 1)),
-            };
-        }
+
+        let params = [
+            Param {
+                value: if length >= 2 { unsafe { *self.prog.get_unchecked(self.pc + 1) } } else { 0 },
+                mode: ParamMode::from(mode0 as u8),
+            },
+            Param {
+                value: if length >= 3 { unsafe { *self.prog.get_unchecked(self.pc + 2) } } else { 0 },
+                mode: ParamMode::from(mode1 as u8),
+            },
+            Param {
+                value: if length >= 4 { unsafe { *self.prog.get_unchecked(self.pc + 3) } } else { 0 },
+                mode: ParamMode::from(mode2 as u8),
+            },
+        ];
         
         Instruction { opcode, params, length }
     }
