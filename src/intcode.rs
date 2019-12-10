@@ -127,15 +127,15 @@ impl Program {
 
         let params = [
             Param {
-                value: if length >= 2 { unsafe { *self.prog.get_unchecked(self.pc + 1) } } else { 0 },
+                value: unsafe { *self.prog.get_unchecked(self.pc + 1) },
                 mode: ParamMode::from(mode0 as u8),
             },
             Param {
-                value: if length >= 3 { unsafe { *self.prog.get_unchecked(self.pc + 2) } } else { 0 },
+                value: unsafe { *self.prog.get_unchecked(self.pc + 2) },
                 mode: ParamMode::from(mode1 as u8),
             },
             Param {
-                value: if length >= 4 { unsafe { *self.prog.get_unchecked(self.pc + 3) } } else { 0 },
+                value: unsafe { *self.prog.get_unchecked(self.pc + 3) },
                 mode: ParamMode::from(mode2 as u8),
             },
         ];
@@ -153,7 +153,7 @@ impl Program {
         if let ParamMode::Position | ParamMode::Relative = param.mode {
             if read_idx >= self.prog.len() {
                 let extend_len = read_idx as usize - (self.prog.len() - 1);
-                self.prog.extend(std::iter::repeat(0).take(extend_len));
+                self.prog.extend(std::iter::repeat(0).take(extend_len + 3)); // 3-padding to guarantee being able to read 3 values for opcode decoding
             }
         }
 
@@ -173,7 +173,7 @@ impl Program {
         };
         if write_idx >= self.prog.len() {
             let extend_len = write_idx - (self.prog.len() - 1);
-            self.prog.extend(std::iter::repeat(0).take(extend_len));
+            self.prog.extend(std::iter::repeat(0).take(extend_len + 3)); // 3-padding to guarantee being able to read 3 values for opcode decoding
         }
 
         // We can use `get_unchecked_mut` here because by casting to usize, we know we're not negative.
@@ -270,6 +270,7 @@ impl Program {
     pub fn reset(&mut self) {
         self.prog.clear();
         self.prog.extend_from_slice(&self.default_prog);
+        self.prog.extend(std::iter::repeat(0).take(3)); // Add tiny padding on the end to guarantee that opcode decoding can read all values
         self.pc = 0;
         self.relative_base = 0;
         self.halted = false;
@@ -280,7 +281,11 @@ impl From<&[i64]> for Program {
     fn from(prog: &[i64]) -> Program {
         Program {
             default_prog: prog.to_vec().into_boxed_slice(),
-            prog: prog.to_vec(),
+            prog: {
+                let mut prog_vec = prog.to_vec();
+                prog_vec.extend(std::iter::repeat(0).take(3));
+                prog_vec
+            },
             pc: 0,
             relative_base: 0,
             halted: false,
