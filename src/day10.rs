@@ -1,6 +1,10 @@
 use aoc_runner_derive::{aoc, aoc_generator};
 use std::collections::{HashSet, BTreeMap};
 
+const PI: f32 = std::f32::consts::PI;
+const TWO_PI: f32 = 2.0 * PI;
+const PI_OVER_TWO: f32 = std::f32::consts::FRAC_PI_2;
+
 #[aoc_generator(day10)]
 fn day10_gen(input: &str) -> Vec<(f32, f32)> {
     input
@@ -62,13 +66,21 @@ fn part2(input: &[(f32, f32)]) -> i32 {
         for i in 0..asteroids.len() {
             if i == station_idx { continue; }
             if asteroids[i].is_none() { continue; }
+            
             let (current_x, current_y) = asteroids[i].unwrap();
-            let angle = (current_y - station_y).atan2(current_x - station_x);
+            let angle = (current_y - station_y).atan2(current_x - station_x).rem_euclid(TWO_PI);
 
             // Account for the first targets being north of the station
-            let adjusted_angle = angle.rem_euclid(std::f32::consts::FRAC_2_PI) - std::f32::consts::FRAC_PI_2;
+            let adjusted_angle = {
+                if angle >= 0.0 && angle < PI_OVER_TWO {
+                    angle + TWO_PI
+                }
+                else {
+                    angle
+                }
+            };
             
-            let angle_int = (adjusted_angle * 1000.0) as i32;
+            let angle_int = (adjusted_angle * 10000.0) as i32;
             targets.entry(angle_int)
                 .and_modify(|idx| {
                     let (target_x, target_y) = asteroids[*idx].unwrap();
@@ -81,7 +93,7 @@ fn part2(input: &[(f32, f32)]) -> i32 {
                 .or_insert(i);
         }
 
-        for (_, &asteroids_idx) in targets.iter() {
+        for (_, &asteroids_idx) in targets.iter().rev() {
             let target_asteroid = asteroids[asteroids_idx];
             let (ast_x, ast_y) = target_asteroid.unwrap();
             let (ast_x, ast_y) = (ast_x as i32, ast_y as i32);
