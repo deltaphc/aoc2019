@@ -1,5 +1,6 @@
 use aoc_runner_derive::{aoc, aoc_generator};
 use std::collections::{HashSet, BTreeMap};
+use std::cmp::Ordering;
 
 const PI: f32 = std::f32::consts::PI;
 const TWO_PI: f32 = 2.0 * PI;
@@ -54,14 +55,60 @@ fn part1(input: &[(f32, f32)]) -> usize {
 }
 
 #[aoc(day10, part2)]
-fn part2(input: &[(f32, f32)]) -> i32 {
+fn part2(input: &[(f32, f32)]) -> i32 { // currently incorrect
     let (station_idx, _) = find_ideal_asteroid(input);
     let (station_x, station_y) = input[station_idx];
     let mut asteroids: Vec<Option<(f32, f32)>> = input.iter().copied().map(Some).collect();
-    let mut targets: BTreeMap<i32, usize> = BTreeMap::new(); // angle -> index within asteroids
+    //let mut targets: BTreeMap<i32, usize> = BTreeMap::new(); // angle -> index within asteroids
     let mut total_destroyed = 0;
 
+    asteroids.sort_unstable_by(|a, b| {
+        let (a_x, a_y) = a.unwrap();
+        let (b_x, b_y) = b.unwrap();
+        let dist_to_a = f32::hypot(station_x - a_x, station_y - a_y);
+        let dist_to_b = f32::hypot(station_x - b_x, station_y - b_y);
+        let ang_to_a = {
+            let mut ang = (station_y - a_y).atan2(station_x - a_x).rem_euclid(TWO_PI);
+            if ang >= 0.0 && ang < PI_OVER_TWO {
+                ang += TWO_PI;
+            }
+            ang
+        };
+        let ang_to_b = {
+            let mut ang = (station_y - b_y).atan2(station_x - b_x).rem_euclid(TWO_PI);
+            if ang >= 0.0 && ang < PI_OVER_TWO {
+                ang += TWO_PI;
+            }
+            ang
+        };
+        let (ang_to_a, ang_to_b) = ((ang_to_a * 1000.0) as i32, (ang_to_b * 1000.0) as i32);
+
+        match ang_to_a.cmp(&ang_to_b) {
+            Ordering::Less => Ordering::Less,
+            Ordering::Greater => Ordering::Greater,
+            Ordering::Equal => {
+                dist_to_a.partial_cmp(&dist_to_b).unwrap_or(Ordering::Equal)
+            }
+        }
+    });
+
     while asteroids.len() > 0 {
+        for i in (0..asteroids.len()).rev() {
+            let asteroid = asteroids[i];
+            if asteroid.is_none() { continue; }
+            let (ast_x, ast_y) = asteroid.unwrap();
+            if ast_x == station_x && ast_y == station_y { continue; }
+            let (ast_x, ast_y) = (ast_x as i32, ast_y as i32);
+
+            asteroids[i] = None;
+            total_destroyed += 1;
+            if total_destroyed == 200 {
+                return ast_x * 100 + ast_y;
+            }
+        }
+    }
+
+    /* while asteroids.len() > 0 {
         targets.clear();
         for i in 0..asteroids.len() {
             if i == station_idx { continue; }
@@ -103,6 +150,6 @@ fn part2(input: &[(f32, f32)]) -> i32 {
                 return ast_x * 100 + ast_y;
             }
         }
-    }
+    } */
     -6969
 }
