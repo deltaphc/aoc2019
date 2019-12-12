@@ -1,5 +1,5 @@
 use aoc_runner_derive::{aoc, aoc_generator};
-use std::collections::{HashSet, BTreeMap};
+use std::collections::{HashSet};
 use std::cmp::Ordering;
 
 const PI: f32 = std::f32::consts::PI;
@@ -7,7 +7,7 @@ const TWO_PI: f32 = 2.0 * PI;
 const PI_OVER_TWO: f32 = std::f32::consts::FRAC_PI_2;
 
 #[aoc_generator(day10)]
-fn day10_gen(input: &str) -> Vec<(f32, f32)> {
+pub fn day10_gen(input: &str) -> Vec<(f32, f32)> {
     input
         .trim()
         .lines()
@@ -49,13 +49,13 @@ fn find_ideal_asteroid(asteroids: &[(f32, f32)]) -> (usize, usize) {
 }
 
 #[aoc(day10, part1)]
-fn part1(input: &[(f32, f32)]) -> usize {
+pub fn part1(input: &[(f32, f32)]) -> usize {
     let (_, asteroids_detected) = find_ideal_asteroid(input);
     asteroids_detected
 }
 
 #[aoc(day10, part2)]
-fn part2(input: &[(f32, f32)]) -> i32 { // currently incorrect
+pub fn part2(input: &[(f32, f32)]) -> i32 { // currently incorrect
     let (station_idx, _) = find_ideal_asteroid(input);
     let (station_x, station_y) = input[station_idx];
     let mut asteroids: Vec<Option<(f32, f32)>> = input.iter().copied().map(Some).collect();
