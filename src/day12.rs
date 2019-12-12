@@ -1,7 +1,7 @@
 use aoc_runner_derive::{aoc, aoc_generator};
 use std::cmp::Ordering;
 
-#[derive(Debug, Copy, Clone, Default)]
+#[derive(Debug, Copy, Clone, Default, Eq, PartialEq)]
 struct Vec3 {
     x: i64,
     y: i64,
@@ -42,7 +42,7 @@ impl std::ops::SubAssign for Vec3 {
     }
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
 struct Moon {
     pos: Vec3,
     vel: Vec3,
@@ -127,4 +127,24 @@ fn part1(input: &[Moon]) -> i64 {
         .iter()
         .map(|m| m.total_energy())
         .sum()
+}
+
+#[aoc(day12, part2)]
+fn part2(input: &[Moon]) -> u64 {
+    let mut moons = input.to_vec();
+    let initial_state = [moons[0], moons[1], moons[2], moons[3]];
+    let mut num_steps = 0_u64;
+    loop {
+        simulation_step(&mut moons);
+        let (num_steps_new, overflow) = num_steps.overflowing_add(1);
+        if overflow {
+            panic!("num_steps overflowed");
+        }
+        else {
+            num_steps = num_steps_new;
+        }
+        let current_state = [moons[0], moons[1], moons[2], moons[3]];
+        if current_state == initial_state { break; }
+    }
+    num_steps
 }
