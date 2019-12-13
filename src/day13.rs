@@ -1,6 +1,7 @@
 use aoc_runner_derive::{aoc, aoc_generator};
 use crate::intcode::{Program, IOOperation, IOReturn, ExecuteAction};
 use std::collections::HashMap;
+use std::hint::unreachable_unchecked;
 
 #[aoc_generator(day13)]
 fn day13_gen(input: &str) -> Vec<i64> {
@@ -14,7 +15,7 @@ fn day13_gen(input: &str) -> Vec<i64> {
 fn part1(input: &[i64]) -> usize {
     let mut prog = Program::from(input);
     let mut game_screen: HashMap<(i64, i64), i64> = HashMap::new(); // (x, y) -> tile
-    let mut output_select = 0; // 0 = x, 1 = y, 2 = tile
+    let mut output_select = 0_u8; // 0 = x, 1 = y, 2 = tile
     let mut x = 0_i64;
     let mut y = 0_i64;
     let mut tile = 0_i64;
@@ -31,7 +32,7 @@ fn part1(input: &[i64]) -> usize {
                             .and_modify(|t| *t = tile)
                             .or_insert(tile);
                     },
-                    _ => unreachable!(),
+                    _ => unsafe { unreachable_unchecked() },
                 }
                 output_select = (output_select + 1) % 3;
                 IOReturn::Output(ExecuteAction::Continue)
@@ -41,26 +42,22 @@ fn part1(input: &[i64]) -> usize {
     game_screen.iter().filter(|(_, &t)| t == 2).count()
 }
 
-fn find_tile(game_screen: &HashMap<(i64, i64), i64>, tile: i64) -> (i64, i64) {
-    let ((x, y), _) = game_screen.iter().find(|(_, &t)| t == tile).unwrap();
-    (*x, *y)
-}
-
 #[aoc(day13, part2)]
 fn part2(input: &[i64]) -> i64 {
     let mut prog = Program::from(input);
     prog.prog_mut()[0] = 2; // free play
     let mut game_screen: HashMap<(i64, i64), i64> = HashMap::new(); // (x, y) -> tile
-    let mut output_select = 0; // 0 = x, 1 = y, 2 = tile/score
+    let mut output_select = 0_u8; // 0 = x, 1 = y, 2 = tile/score
     let mut x = 0_i64;
     let mut y = 0_i64;
     let mut tile = 0_i64;
     let mut score = 0_i64;
+    let mut ball_x = 0;
+    let mut paddle_x = 0;
+
     prog.run(|io_op| {
         match io_op {
             IOOperation::Input => {
-                let (ball_x, _) = find_tile(&game_screen, 4);
-                let (paddle_x, _) = find_tile(&game_screen, 3);
                 let mut joystick = 0_i64;
 
                 if ball_x < paddle_x {
@@ -82,12 +79,18 @@ fn part2(input: &[i64]) -> i64 {
                         }
                         else {
                             tile = value;
+                            if tile == 4 {
+                                ball_x = x;
+                            }
+                            else if tile == 3 {
+                                paddle_x = x;
+                            }
                             game_screen.entry((x, y))
                                 .and_modify(|t| *t = tile)
                                 .or_insert(tile);
                         }
                     },
-                    _ => unreachable!(),
+                    _ => unsafe { unreachable_unchecked() },
                 }
                 output_select = (output_select + 1) % 3;
                 IOReturn::Output(ExecuteAction::Continue)
