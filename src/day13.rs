@@ -1,9 +1,7 @@
-use aoc_runner_derive::{aoc, aoc_generator};
 use crate::intcode::{Program, IOOperation, IOReturn, ExecuteAction};
 use std::collections::HashMap;
 use std::hint::unreachable_unchecked;
 
-#[aoc_generator(day13)]
 fn day13_gen(input: &str) -> Vec<i64> {
     input
         .split(',')
@@ -11,9 +9,8 @@ fn day13_gen(input: &str) -> Vec<i64> {
         .collect()
 }
 
-#[aoc(day13, part1)]
-fn part1(input: &[i64]) -> usize {
-    let mut prog = Program::from(input);
+fn part1(input: Vec<i64>) -> usize {
+    let mut prog = Program::from(input.as_slice());
     let mut game_screen: HashMap<(i64, i64), i64> = HashMap::new(); // (x, y) -> tile
     let mut output_select = 0_u8; // 0 = x, 1 = y, 2 = tile
     let mut x = 0_i64;
@@ -42,9 +39,8 @@ fn part1(input: &[i64]) -> usize {
     game_screen.iter().filter(|(_, &t)| t == 2).count()
 }
 
-#[aoc(day13, part2)]
-fn part2(input: &[i64]) -> i64 {
-    let mut prog = Program::from(input);
+fn part2(input: Vec<i64>) -> i64 {
+    let mut prog = Program::from(input.as_slice());
     prog.prog_mut()[0] = 2; // free play
     let mut game_screen: HashMap<(i64, i64), i64> = HashMap::new(); // (x, y) -> tile
     let mut output_select = 0_u8; // 0 = x, 1 = y, 2 = tile/score
@@ -98,4 +94,12 @@ fn part2(input: &[i64]) -> i64 {
         }
     });
     score
+}
+
+pub fn run() -> Result<(), Box<dyn std::error::Error>> {
+    let mut helper = aoc_helper::Helper::new_with_serializer(2019, 13, day13_gen);
+    helper.part1(part1);
+    helper.part2(part2);
+    helper.run()?;
+    Ok(())
 }

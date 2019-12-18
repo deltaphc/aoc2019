@@ -1,4 +1,3 @@
-use aoc_runner_derive::{aoc, aoc_generator};
 use crate::intcode::{Program, IOOperation, IOReturn, ExecuteAction};
 use std::collections::HashMap;
 
@@ -121,7 +120,6 @@ fn paint_hull(input: &[i64], starting_tile: Tile) -> (usize, String) {
     (tiles.len(), output_image)
 }
 
-#[aoc_generator(day11)]
 fn day11_gen(input: &str) -> Vec<i64> {
     input
         .split(',')
@@ -129,14 +127,20 @@ fn day11_gen(input: &str) -> Vec<i64> {
         .collect()
 }
 
-#[aoc(day11, part1)]
-fn part1(input: &[i64]) -> usize {
-    let (tiles_painted, _) = paint_hull(input, Tile::Black);
+fn part1(input: Vec<i64>) -> usize {
+    let (tiles_painted, _) = paint_hull(&input, Tile::Black);
     tiles_painted
 }
 
-#[aoc(day11, part2)]
-fn part2(input: &[i64]) -> String {
-    let (_, output_image) = paint_hull(input, Tile::White);
+fn part2(input: Vec<i64>) -> String {
+    let (_, output_image) = paint_hull(&input, Tile::White);
     output_image
+}
+
+pub fn run() -> Result<(), Box<dyn std::error::Error>> {
+    let mut helper = aoc_helper::Helper::new_with_serializer(2019, 11, day11_gen);
+    helper.part1(part1);
+    helper.part2(part2);
+    helper.run()?;
+    Ok(())
 }

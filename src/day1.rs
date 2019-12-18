@@ -1,7 +1,4 @@
-use aoc_runner_derive::{aoc};
-
-#[aoc(day1, part1)]
-fn part1(input: &str) -> i32 {
+fn part1(input: String) -> i32 {
     input
         .lines()
         .flat_map(|s| s.parse::<i32>())
@@ -9,8 +6,7 @@ fn part1(input: &str) -> i32 {
         .sum()
 }
 
-#[aoc(day1, part2)]
-fn part2(input: &str) -> i32 {
+fn part2(input: String) -> i32 {
     input
         .lines()
         .flat_map(|s| s.parse::<i32>())
@@ -24,4 +20,12 @@ fn part2(input: &str) -> i32 {
             total_mass
         })
         .sum()
+}
+
+pub fn run() -> Result<(), Box<dyn std::error::Error>> {
+    let mut helper = aoc_helper::Helper::new(2019, 1);
+    helper.part1(part1);
+    helper.part2(part2);
+    helper.run()?;
+    Ok(())
 }

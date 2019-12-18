@@ -1,7 +1,5 @@
-use aoc_runner_derive::{aoc, aoc_generator};
 use crate::intcode::{Program, IOOperation, IOReturn, ExecuteAction};
 
-#[aoc_generator(day5)]
 fn day5_gen(input: &str) -> Vec<i64> {
     input
         .split(',')
@@ -9,10 +7,9 @@ fn day5_gen(input: &str) -> Vec<i64> {
         .collect()
 }
 
-#[aoc(day5, part1)]
-pub(crate) fn part1(input: &[i64]) -> i64 {
+pub(crate) fn part1(input: Vec<i64>) -> i64 {
     let mut output = -6969;
-    Program::from(input).run(|io_op| {
+    Program::from(input.as_slice()).run(|io_op| {
         match io_op {
             IOOperation::Input => IOReturn::Input(1),
             IOOperation::Output(value) => {
@@ -26,10 +23,9 @@ pub(crate) fn part1(input: &[i64]) -> i64 {
     output
 }
 
-#[aoc(day5, part2)]
-pub(crate) fn part2(input: &[i64]) -> i64 {
+pub(crate) fn part2(input: Vec<i64>) -> i64 {
     let mut output = -6969;
-    Program::from(input).run(|io_op| {
+    Program::from(input.as_slice()).run(|io_op| {
         match io_op {
             IOOperation::Input => IOReturn::Input(5),
             IOOperation::Output(value) => {
@@ -41,4 +37,12 @@ pub(crate) fn part2(input: &[i64]) -> i64 {
         }
     });
     output
+}
+
+pub fn run() -> Result<(), Box<dyn std::error::Error>> {
+    let mut helper = aoc_helper::Helper::new_with_serializer(2019, 5, day5_gen);
+    helper.part1(part1);
+    helper.part2(part2);
+    helper.run()?;
+    Ok(())
 }

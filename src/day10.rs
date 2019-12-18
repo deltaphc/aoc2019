@@ -1,4 +1,3 @@
-use aoc_runner_derive::{aoc, aoc_generator};
 use std::collections::{HashSet};
 use std::cmp::Ordering;
 
@@ -6,7 +5,6 @@ const PI: f32 = std::f32::consts::PI;
 const TWO_PI: f32 = 2.0 * PI;
 const PI_OVER_TWO: f32 = std::f32::consts::FRAC_PI_2;
 
-#[aoc_generator(day10)]
 pub fn day10_gen(input: &str) -> Vec<(f32, f32)> {
     input
         .trim()
@@ -48,15 +46,13 @@ fn find_ideal_asteroid(asteroids: &[(f32, f32)]) -> (usize, usize) {
     (most_asteroids_idx, most_asteroids)
 }
 
-#[aoc(day10, part1)]
-pub fn part1(input: &[(f32, f32)]) -> usize {
-    let (_, asteroids_detected) = find_ideal_asteroid(input);
+pub fn part1(input: Vec<(f32, f32)>) -> usize {
+    let (_, asteroids_detected) = find_ideal_asteroid(&input);
     asteroids_detected
 }
 
-#[aoc(day10, part2)]
-pub fn part2(input: &[(f32, f32)]) -> i32 { // currently incorrect
-    let (station_idx, _) = find_ideal_asteroid(input);
+pub fn part2(input: Vec<(f32, f32)>) -> i32 { // currently incorrect
+    let (station_idx, _) = find_ideal_asteroid(&input);
     let (station_x, station_y) = input[station_idx];
     let mut asteroids: Vec<Option<(f32, f32)>> = input.iter().copied().map(Some).collect();
     //let mut targets: BTreeMap<i32, usize> = BTreeMap::new(); // angle -> index within asteroids
@@ -152,4 +148,12 @@ pub fn part2(input: &[(f32, f32)]) -> i32 { // currently incorrect
         }
     } */
     -6969
+}
+
+pub fn run() -> Result<(), Box<dyn std::error::Error>> {
+    let mut helper = aoc_helper::Helper::new_with_serializer(2019, 10, day10_gen);
+    helper.part1(part1);
+    helper.part2(part2);
+    helper.run()?;
+    Ok(())
 }

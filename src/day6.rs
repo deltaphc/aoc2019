@@ -1,7 +1,5 @@
-use aoc_runner_derive::{aoc, aoc_generator};
 use std::collections::HashMap;
 
-#[aoc_generator(day6)]
 fn day6_gen(input: &str) -> HashMap<String, String> {
     input
         .lines()
@@ -13,11 +11,10 @@ fn day6_gen(input: &str) -> HashMap<String, String> {
         .collect()
 }
 
-#[aoc(day6, part1)]
-fn part1(input: &HashMap<String, String>) -> i32 {
+fn part1(input: HashMap<String, String>) -> i32 {
     let direct_orbits = input.len() as i32;
     let mut total_indirect_orbits = 0;
-    for (_, v) in input {
+    for (_, v) in &input {
         let mut indirect_orbits = 0;
         let mut current_v = v;
         while let Some(next_val) = input.get(current_v) {
@@ -31,8 +28,7 @@ fn part1(input: &HashMap<String, String>) -> i32 {
     direct_orbits + total_indirect_orbits
 }
 
-#[aoc(day6, part2)]
-fn part2(input: &HashMap<String, String>) -> usize {
+fn part2(input: HashMap<String, String>) -> usize {
     let mut you_to_com = Vec::new();
     {
         let mut cursor = &input["YOU"];
@@ -66,4 +62,12 @@ fn part2(input: &HashMap<String, String>) -> usize {
         }
     }
     orbital_transfers
+}
+
+pub fn run() -> Result<(), Box<dyn std::error::Error>> {
+    let mut helper = aoc_helper::Helper::new_with_serializer(2019, 6, day6_gen);
+    helper.part1(part1);
+    helper.part2(part2);
+    helper.run()?;
+    Ok(())
 }

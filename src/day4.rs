@@ -1,5 +1,3 @@
-use aoc_runner_derive::{aoc, aoc_generator};
-
 const POW10: [u32; 6] = [1, 10, 100, 1000, 10000, 100000];
 
 /// Returns the `n`th digit (from left to right) of the given six-digit `num`.
@@ -19,7 +17,6 @@ fn digits(num: u32) -> [u32; 6] {
     ]
 }
 
-#[aoc_generator(day4)]
 fn day4_gen(input: &str) -> (u32, u32) {
     (
         input[0..6].parse::<u32>().unwrap(),
@@ -27,8 +24,7 @@ fn day4_gen(input: &str) -> (u32, u32) {
     )
 }
 
-#[aoc(day4, part1)]
-fn part1(&(lower, upper): &(u32, u32)) -> usize {
+fn part1((lower, upper): (u32, u32)) -> usize {
     (lower..=upper)
         .filter(|&num| {
             let mut double_digit = false;
@@ -48,8 +44,7 @@ fn part1(&(lower, upper): &(u32, u32)) -> usize {
         .count()
 }
 
-#[aoc(day4, part2)]
-fn part2(&(lower, upper): &(u32, u32)) -> usize {
+fn part2((lower, upper): (u32, u32)) -> usize {
     (lower..=upper)
         .filter(|&num| {
             let mut double_digit = false;
@@ -79,4 +74,12 @@ fn part2(&(lower, upper): &(u32, u32)) -> usize {
             double_digit
         })
         .count()
+}
+
+pub fn run() -> Result<(), Box<dyn std::error::Error>> {
+    let mut helper = aoc_helper::Helper::new_with_serializer(2019, 4, day4_gen);
+    helper.part1(part1);
+    helper.part2(part2);
+    helper.run()?;
+    Ok(())
 }

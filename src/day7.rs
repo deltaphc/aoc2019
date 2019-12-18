@@ -1,8 +1,6 @@
-use aoc_runner_derive::{aoc, aoc_generator};
 use crate::intcode::{Program, IOOperation, IOReturn, ExecuteAction};
 use itertools::Itertools;
 
-#[aoc_generator(day7)]
 fn day7_gen(input: &str) -> Vec<i64> {
     input
         .split(',')
@@ -35,11 +33,16 @@ fn run_amplifier(prog: &mut Program, phase_setting: impl Into<Option<i64>>, inpu
     AmpResult { output, halted: prog.is_halted() }
 }
 
-#[aoc(day7, part1)]
-pub(crate) fn part1(input: &[i64]) -> i64 {
+pub(crate) fn part1(input: Vec<i64>) -> i64 {
     let mut highest_output = 0;
     for phases in (0..=4).permutations(5) {
-        let mut amp_progs = [Program::from(input), Program::from(input), Program::from(input), Program::from(input), Program::from(input)];
+        let mut amp_progs = [
+            Program::from(input.as_slice()),
+            Program::from(input.as_slice()),
+            Program::from(input.as_slice()),
+            Program::from(input.as_slice()),
+            Program::from(input.as_slice()),
+        ];
         let mut amp_result = AmpResult::default();
         for i in 0..5 {
            amp_result = run_amplifier(&mut amp_progs[i], phases[i], amp_result.output);
@@ -51,11 +54,16 @@ pub(crate) fn part1(input: &[i64]) -> i64 {
     highest_output
 }
 
-#[aoc(day7, part2)]
-pub(crate) fn part2(input: &[i64]) -> i64 {
+pub(crate) fn part2(input: Vec<i64>) -> i64 {
     let mut highest_output = 0;
     for phases in (5..=9).permutations(5) {
-        let mut amp_progs = [Program::from(input), Program::from(input), Program::from(input), Program::from(input), Program::from(input)];
+        let mut amp_progs = [
+            Program::from(input.as_slice()),
+            Program::from(input.as_slice()),
+            Program::from(input.as_slice()),
+            Program::from(input.as_slice()),
+            Program::from(input.as_slice()),
+        ];
         let mut amp_result = AmpResult::default();
         let mut provide_phase = true;
         while !amp_result.halted {
@@ -77,4 +85,12 @@ pub(crate) fn part2(input: &[i64]) -> i64 {
         }
     }
     highest_output
+}
+
+pub fn run() -> Result<(), Box<dyn std::error::Error>> {
+    let mut helper = aoc_helper::Helper::new_with_serializer(2019, 7, day7_gen);
+    helper.part1(part1);
+    helper.part2(part2);
+    helper.run()?;
+    Ok(())
 }

@@ -1,4 +1,3 @@
-use aoc_runner_derive::{aoc, aoc_generator};
 use std::collections::HashMap;
 
 type WireGridMap = HashMap<(i32, i32), GridCell>;
@@ -18,7 +17,6 @@ enum GridCell {
     Intersection([u32; 2]),
 }
 
-#[aoc_generator(day3)]
 fn day3_gen(input: &str) -> WireGridMap {
     let wires: Vec<Vec<WireInstruction>> = input
         .lines()
@@ -102,10 +100,9 @@ fn process_cell(wire_grid: &mut WireGridMap, x: i32, y: i32, current_wire_idx: u
         .or_insert(GridCell::OccupiedBy { wire_idx: current_wire_idx, at_step: wire_steps[current_wire_idx] });
 }
 
-#[aoc(day3, part1)]
-fn part1(input: &WireGridMap) -> i32 {
+fn part1(input: WireGridMap) -> i32 {
     let mut closest_distance = i32::max_value();
-    for ((x, y), cell) in input {
+    for ((x, y), cell) in &input {
         if let GridCell::Intersection(_) = cell {
             let manhattan_dist = x.abs() + y.abs();
             if manhattan_dist < closest_distance {
@@ -116,16 +113,23 @@ fn part1(input: &WireGridMap) -> i32 {
     closest_distance
 }
 
-#[aoc(day3, part2)]
-fn part2(input: &WireGridMap) -> u32 {
-    let mut lowest_step_sum = u32::max_value();
-    for ((_, _), cell) in input {
+fn part2(input: WireGridMap) -> i32 {
+    let mut lowest_step_sum = i32::max_value();
+    for ((_, _), cell) in &input {
         if let GridCell::Intersection(steps) = cell {
-            let step_sum = steps[0] + steps[1];
+            let step_sum = (steps[0] + steps[1]) as i32;
             if step_sum < lowest_step_sum {
                 lowest_step_sum = step_sum;
             }
         }
     }
     lowest_step_sum
+}
+
+pub fn run() -> Result<(), Box<dyn std::error::Error>> {
+    let mut helper = aoc_helper::Helper::new_with_serializer(2019, 3, day3_gen);
+    helper.part1(part1);
+    helper.part2(part2);
+    helper.run()?;
+    Ok(())
 }

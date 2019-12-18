@@ -1,4 +1,3 @@
-use aoc_runner_derive::{aoc, aoc_generator};
 use std::cmp::Ordering;
 
 #[derive(Debug, Copy, Clone, Default, Eq, PartialEq)]
@@ -62,7 +61,6 @@ impl Moon {
     }
 }
 
-#[aoc_generator(day12)]
 fn day12_gen(input: &str) -> Vec<Moon> {
     input
         .trim()
@@ -117,9 +115,8 @@ fn simulation_step(moons: &mut [Moon]) {
     }
 }
 
-#[aoc(day12, part1)]
-fn part1(input: &[Moon]) -> i64 {
-    let mut moons = input.to_vec();
+fn part1(moons: Vec<Moon>) -> i64 {
+    let mut moons = moons;
     for _ in 0..1000 {
         simulation_step(&mut moons);
     }
@@ -129,9 +126,8 @@ fn part1(input: &[Moon]) -> i64 {
         .sum()
 }
 
-#[aoc(day12, part2)]
-fn part2(input: &[Moon]) -> u64 {
-    let mut moons = input.to_vec();
+fn part2(moons: Vec<Moon>) -> u64 {
+    let mut moons = moons;
     let initial_state = [moons[0], moons[1], moons[2], moons[3]];
     let mut num_steps = 0_u64;
     loop {
@@ -147,4 +143,12 @@ fn part2(input: &[Moon]) -> u64 {
         if current_state == initial_state { break; }
     }
     num_steps
+}
+
+pub fn run() -> Result<(), Box<dyn std::error::Error>> {
+    let mut helper = aoc_helper::Helper::new_with_serializer(2019, 12, day12_gen);
+    helper.part1(part1);
+    helper.part2(part2);
+    helper.run()?;
+    Ok(())
 }
