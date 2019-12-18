@@ -46,10 +46,20 @@ const DAY_RUNNERS: [fn () -> Result<(), Box<dyn std::error::Error>>; 25] = [
 
 fn empty_run() -> Result<(), Box<dyn std::error::Error>> { unimplemented!() }
 
+fn print_usage_and_exit() -> ! {
+    let exe_path = std::env::current_exe().unwrap();
+    let exe_name = exe_path.file_name().unwrap().to_str().unwrap();
+    println!("Delta's AoC 2019 solutions\nUsage: {} day", exe_name);
+    std::process::exit(0)
+}
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut args = std::env::args();
     args.next(); // ignore executable path
-    let day = args.next().unwrap().parse::<usize>()?;
+    let day = match args.next() {
+        Some(day_str) => day_str.parse::<usize>()?,
+        None => print_usage_and_exit(),
+    };
     DAY_RUNNERS[day - 1]()?;
     Ok(())
 }
