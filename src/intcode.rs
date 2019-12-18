@@ -310,7 +310,7 @@ mod tests {
 
     #[test]
     fn day2_part1() {
-        let input = read_intcode_input("input/2019/day2.txt");
+        let input = read_intcode_input("inputs/2019/day2.txt");
         let mut prog = Program::from(&input[..]);
         {
             let prog_content = prog.prog_mut();
@@ -323,37 +323,37 @@ mod tests {
 
     #[test]
     fn day5_part1() {
-        let prog = read_intcode_input("input/2019/day5.txt");
+        let prog = read_intcode_input("inputs/2019/day5.txt");
         assert_eq!(day5::part1(prog), 16434972);
     }
 
     #[test]
     fn day5_part2() {
-        let prog = read_intcode_input("input/2019/day5.txt");
+        let prog = read_intcode_input("inputs/2019/day5.txt");
         assert_eq!(day5::part2(prog), 16694270);
     }
 
     #[test]
     fn day7_part1() {
-        let prog = read_intcode_input("input/2019/day7.txt");
+        let prog = read_intcode_input("inputs/2019/day7.txt");
         assert_eq!(day7::part1(prog), 359142);
     }
 
     #[test]
     fn day7_part2() {
-        let prog = read_intcode_input("input/2019/day7.txt");
+        let prog = read_intcode_input("inputs/2019/day7.txt");
         assert_eq!(day7::part2(prog), 4374895);
     }
 
     #[test]
     fn day9_part1() {
-        let prog = read_intcode_input("input/2019/day9.txt");
+        let prog = read_intcode_input("inputs/2019/day9.txt");
         assert_eq!(day9::part1(prog), 3235019597);
     }
 
     #[test]
     fn day9_part2() {
-        let prog = read_intcode_input("input/2019/day9.txt");
+        let prog = read_intcode_input("inputs/2019/day9.txt");
         assert_eq!(day9::part2(prog), 80274);
     }
 }
