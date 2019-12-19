@@ -15,6 +15,9 @@ mod day13;
 mod day14;
 // mod day15;
 mod day16;
+// mod day17;
+// mod day18;
+mod day19;
 
 const DAY_RUNNERS: [fn () -> Result<(), Box<dyn std::error::Error>>; 25] = [
     day1::run,
@@ -35,7 +38,7 @@ const DAY_RUNNERS: [fn () -> Result<(), Box<dyn std::error::Error>>; 25] = [
     day16::run,
     empty_run,
     empty_run,
-    empty_run,
+    day19::run,
     empty_run,
     empty_run,
     empty_run,
