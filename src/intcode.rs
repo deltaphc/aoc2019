@@ -1,5 +1,9 @@
+pub mod prelude {
+    pub use super::{Program, IOOperation, IOReturn, ExecuteAction};
+}
+
 #[derive(Debug, Copy, Clone)]
-pub enum Op {
+enum Op {
     Add,
     Multiply,
     Input,
@@ -13,7 +17,7 @@ pub enum Op {
 }
 
 #[derive(Debug, Copy, Clone)]
-pub enum ParamMode {
+enum ParamMode {
     Position,
     Immediate,
     Relative,
@@ -31,7 +35,7 @@ impl From<u8> for ParamMode {
 }
 
 #[derive(Debug, Copy, Clone)]
-pub struct Param {
+struct Param {
     value: i64,
     mode: ParamMode,
 }
@@ -266,7 +270,6 @@ impl Program {
     }
  
     /// Resets the current Intcode program to its initial state.
-    #[allow(dead_code)]
     pub fn reset(&mut self) {
         self.prog.clear();
         self.prog.extend_from_slice(&self.default_prog);

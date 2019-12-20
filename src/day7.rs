@@ -1,4 +1,4 @@
-use crate::intcode::{Program, IOOperation, IOReturn, ExecuteAction};
+use crate::intcode::prelude::*;
 use itertools::Itertools;
 
 fn day7_gen(input: &str) -> Vec<i64> {

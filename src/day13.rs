@@ -1,4 +1,4 @@
-use crate::intcode::{Program, IOOperation, IOReturn, ExecuteAction};
+use crate::intcode::prelude::*;
 use std::collections::HashMap;
 use std::hint::unreachable_unchecked;
 
