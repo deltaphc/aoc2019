@@ -1,7 +1,7 @@
 const WIDTH: usize = 25;
 const HEIGHT: usize = 6;
 
-fn day8_gen(input: &str) -> Vec<u8> {
+fn day8_gen(input: String) -> Vec<u8> {
     input.trim().bytes().map(|digit_ascii| digit_ascii - 0x30).collect()
 }
 
@@ -56,10 +56,12 @@ fn part2(input: Vec<u8>) -> String {
     output
 }
 
+use aoc_helper::{AocDay, Puzzle};
 pub fn run() -> Result<(), Box<dyn std::error::Error>> {
-    let mut helper = aoc_helper::Helper::new_with_serializer(2019, 8, day8_gen);
-    helper.part1(part1);
-    helper.part2(part2);
-    helper.run()?;
+    let mut day = AocDay::new_with_serializer(2019, 8, day8_gen);
+    let part1 = Puzzle::new(1, part1);
+    let part2 = Puzzle::new(2, part2);
+    day.run(&part1)?;
+    day.run(&part2)?;
     Ok(())
 }

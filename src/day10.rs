@@ -5,7 +5,7 @@ const PI: f32 = std::f32::consts::PI;
 const TWO_PI: f32 = 2.0 * PI;
 const PI_OVER_TWO: f32 = std::f32::consts::FRAC_PI_2;
 
-pub fn day10_gen(input: &str) -> Vec<(f32, f32)> {
+pub fn day10_gen(input: String) -> Vec<(f32, f32)> {
     input
         .trim()
         .lines()
@@ -150,10 +150,12 @@ pub fn part2(input: Vec<(f32, f32)>) -> i32 { // currently incorrect
     -6969
 }
 
+use aoc_helper::{AocDay, Puzzle};
 pub fn run() -> Result<(), Box<dyn std::error::Error>> {
-    let mut helper = aoc_helper::Helper::new_with_serializer(2019, 10, day10_gen);
-    helper.part1(part1);
-    helper.part2(part2);
-    helper.run()?;
+    let mut day = AocDay::new_with_serializer(2019, 10, day10_gen);
+    let part1 = Puzzle::new(1, part1);
+    let part2 = Puzzle::new(2, part2);
+    day.run(&part1)?;
+    day.run(&part2)?;
     Ok(())
 }

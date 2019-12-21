@@ -17,7 +17,7 @@ enum GridCell {
     Intersection([u32; 2]),
 }
 
-fn day3_gen(input: &str) -> WireGridMap {
+fn day3_gen(input: String) -> WireGridMap {
     let wires: Vec<Vec<WireInstruction>> = input
         .lines()
         .map(|line| {
@@ -126,10 +126,12 @@ fn part2(input: WireGridMap) -> i32 {
     lowest_step_sum
 }
 
+use aoc_helper::{AocDay, Puzzle};
 pub fn run() -> Result<(), Box<dyn std::error::Error>> {
-    let mut helper = aoc_helper::Helper::new_with_serializer(2019, 3, day3_gen);
-    helper.part1(part1);
-    helper.part2(part2);
-    helper.run()?;
+    let mut day = AocDay::new_with_serializer(2019, 3, day3_gen);
+    let part1 = Puzzle::new(1, part1);
+    let part2 = Puzzle::new(2, part2);
+    day.run(&part1)?;
+    day.run(&part2)?;
     Ok(())
 }

@@ -26,7 +26,7 @@ fn fft(digits: &[i8]) -> Vec<i8> {
         .collect()
 }
 
-fn day16_gen(input: &str) -> Vec<i8> {
+fn day16_gen(input: String) -> Vec<i8> {
     input
         .bytes()
         .map(|b| (b - b'0') as i8)
@@ -45,10 +45,12 @@ fn part2(_input: Vec<i8>) -> String {
     "".to_string()
 }
 
+use aoc_helper::{AocDay, Puzzle};
 pub fn run() -> Result<(), Box<dyn std::error::Error>> {
-    let mut helper = aoc_helper::Helper::new_with_serializer(2019, 16, day16_gen);
-    helper.part1(part1);
-    helper.part2(part2);
-    helper.run()?;
+    let mut day = AocDay::new_with_serializer(2019, 16, day16_gen);
+    let part1 = Puzzle::new(1, part1);
+    let part2 = Puzzle::new(2, part2);
+    day.run(&part1)?;
+    day.run(&part2)?;
     Ok(())
 }

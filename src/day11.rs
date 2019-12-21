@@ -120,7 +120,7 @@ fn paint_hull(input: &[i64], starting_tile: Tile) -> (usize, String) {
     (tiles.len(), output_image)
 }
 
-fn day11_gen(input: &str) -> Vec<i64> {
+fn day11_gen(input: String) -> Vec<i64> {
     input
         .split(',')
         .flat_map(|num_str| num_str.trim().parse::<i64>())
@@ -137,10 +137,12 @@ fn part2(input: Vec<i64>) -> String {
     output_image
 }
 
+use aoc_helper::{AocDay, Puzzle};
 pub fn run() -> Result<(), Box<dyn std::error::Error>> {
-    let mut helper = aoc_helper::Helper::new_with_serializer(2019, 11, day11_gen);
-    helper.part1(part1);
-    helper.part2(part2);
-    helper.run()?;
+    let mut day = AocDay::new_with_serializer(2019, 11, day11_gen);
+    let part1 = Puzzle::new(1, part1);
+    let part2 = Puzzle::new(2, part2);
+    day.run(&part1)?;
+    day.run(&part2)?;
     Ok(())
 }

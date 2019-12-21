@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-fn day6_gen(input: &str) -> HashMap<String, String> {
+fn day6_gen(input: String) -> HashMap<String, String> {
     input
         .lines()
         .map(|line| {
@@ -64,10 +64,12 @@ fn part2(input: HashMap<String, String>) -> usize {
     orbital_transfers
 }
 
+use aoc_helper::{AocDay, Puzzle};
 pub fn run() -> Result<(), Box<dyn std::error::Error>> {
-    let mut helper = aoc_helper::Helper::new_with_serializer(2019, 6, day6_gen);
-    helper.part1(part1);
-    helper.part2(part2);
-    helper.run()?;
+    let mut day = AocDay::new_with_serializer(2019, 6, day6_gen);
+    let part1 = Puzzle::new(1, part1);
+    let part2 = Puzzle::new(2, part2);
+    day.run(&part1)?;
+    day.run(&part2)?;
     Ok(())
 }

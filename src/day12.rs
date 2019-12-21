@@ -61,7 +61,7 @@ impl Moon {
     }
 }
 
-fn day12_gen(input: &str) -> Vec<Moon> {
+fn day12_gen(input: String) -> Vec<Moon> {
     input
         .trim()
         .lines()
@@ -145,10 +145,12 @@ fn part2(moons: Vec<Moon>) -> u64 {
     num_steps
 }
 
+use aoc_helper::{AocDay, Puzzle};
 pub fn run() -> Result<(), Box<dyn std::error::Error>> {
-    let mut helper = aoc_helper::Helper::new_with_serializer(2019, 12, day12_gen);
-    helper.part1(part1);
-    helper.part2(part2);
-    helper.run()?;
+    let mut day = AocDay::new_with_serializer(2019, 12, day12_gen);
+    let part1 = Puzzle::new(1, part1);
+    let part2 = Puzzle::new(2, part2);
+    day.run(&part1)?;
+    day.run(&part2)?;
     Ok(())
 }

@@ -1,6 +1,6 @@
 use crate::intcode::prelude::*;
 
-fn day9_gen(input: &str) -> Vec<i64> {
+fn day9_gen(input: String) -> Vec<i64> {
     input
         .split(',')
         .flat_map(|num_str| num_str.trim().parse::<i64>())
@@ -37,10 +37,12 @@ pub fn part2(input: Vec<i64>) -> i64 {
     output
 }
 
+use aoc_helper::{AocDay, Puzzle};
 pub fn run() -> Result<(), Box<dyn std::error::Error>> {
-    let mut helper = aoc_helper::Helper::new_with_serializer(2019, 9, day9_gen);
-    helper.part1(part1);
-    helper.part2(part2);
-    helper.run()?;
+    let mut day = AocDay::new_with_serializer(2019, 9, day9_gen);
+    let part1 = Puzzle::new(1, part1);
+    let part2 = Puzzle::new(2, part2);
+    day.run(&part1)?;
+    day.run(&part2)?;
     Ok(())
 }

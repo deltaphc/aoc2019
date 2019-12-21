@@ -17,7 +17,7 @@ fn digits(num: u32) -> [u32; 6] {
     ]
 }
 
-fn day4_gen(input: &str) -> (u32, u32) {
+fn day4_gen(input: String) -> (u32, u32) {
     (
         input[0..6].parse::<u32>().unwrap(),
         input[7..13].parse::<u32>().unwrap()
@@ -76,10 +76,12 @@ fn part2((lower, upper): (u32, u32)) -> usize {
         .count()
 }
 
+use aoc_helper::{AocDay, Puzzle};
 pub fn run() -> Result<(), Box<dyn std::error::Error>> {
-    let mut helper = aoc_helper::Helper::new_with_serializer(2019, 4, day4_gen);
-    helper.part1(part1);
-    helper.part2(part2);
-    helper.run()?;
+    let mut day = AocDay::new_with_serializer(2019, 4, day4_gen);
+    let part1 = Puzzle::new(1, part1);
+    let part2 = Puzzle::new(2, part2);
+    day.run(&part1)?;
+    day.run(&part2)?;
     Ok(())
 }

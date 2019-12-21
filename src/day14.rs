@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 type ChemMap = HashMap<String, (u32, Vec<(u32, String)>)>;
 
-fn day14_gen(input: &str) -> ChemMap {
+fn day14_gen(input: String) -> ChemMap {
     input
         .trim()
         .lines()
@@ -58,10 +58,12 @@ fn part2(_input: ChemMap) -> u32 {
     6969
 }
 
+use aoc_helper::{AocDay, Puzzle};
 pub fn run() -> Result<(), Box<dyn std::error::Error>> {
-    let mut helper = aoc_helper::Helper::new_with_serializer(2019, 14, day14_gen);
-    helper.part1(part1);
-    helper.part2(part2);
-    helper.run()?;
+    let mut day = AocDay::new_with_serializer(2019, 14, day14_gen);
+    let part1 = Puzzle::new(1, part1);
+    let part2 = Puzzle::new(2, part2);
+    day.run(&part1)?;
+    day.run(&part2)?;
     Ok(())
 }
